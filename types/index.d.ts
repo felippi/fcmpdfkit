@@ -1,6 +1,6 @@
 // Changed by Felippi CM from https://www.npmjs.com/package/@types/pdfkit
 
-// Type definitions for FcmPdfkit v0.1.2
+// Type definitions for FcmPdfkit v0.1.3
 // Project: http://pdfkit.org
 // Definitions by: Eric Hillah <https://github.com/erichillah>
 //                 Erik Berreßem <https://github.com/she11sh0cked>
