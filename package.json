@@ -9,7 +9,7 @@
     "document",
     "vector"
   ],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "",
   "author": {
     "name": "Felippi CM",
@@ -66,6 +66,7 @@
     "test:visual": "jest visual/ -i",
     "test:unit": "jest unit/"
   },
+  "types": "./types/index.d.ts",
   "main": "js/pdfkit.js",
   "module": "js/pdfkit.es5.js",
   "esnext": "js/pdfkit.esnext.js",
