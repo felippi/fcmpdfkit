@@ -83,6 +83,13 @@ declare namespace FcmPDFKit.Mixins {
         file(src: Buffer | ArrayBuffer | string, options?: PDFAttachmentOptions): this;
     }
 
+    interface PDFFcm {
+        roundedRectUp(x: number, y: number, w: number, h: number, r?: number): this;
+        roundedRectMid(x: number, y: number, w: number, h: number, r?: number): this;
+        roundedRectDown(x: number, y: number, w: number, h: number, r?: number): this;
+        drawRuler(x?: number, y?: number): void;
+    }
+
     // The color forms accepted by FcmPDFKit:
     //     example:   "red"                  [R, G, B]                  [C, M, Y, K]
     type ColorValue = string | PDFGradient | [number, number, number] | [number, number, number, number];
@@ -417,7 +424,8 @@ declare namespace FcmPDFKit {
         Mixins.PDFFont,
         Mixins.PDFAcroForm,
         Mixins.PDFMarking,
-        Mixins.PDFAttachment {
+        Mixins.PDFAttachment,
+        Mixins.PDFFcm {
         /**
          * PDF Version
          */
@@ -441,6 +449,8 @@ declare namespace FcmPDFKit {
 
         x: number;
         y: number;
+
+        noPageBreak: boolean;
 
         new (options?: PDFDocumentOptions): PDFDocument;
 

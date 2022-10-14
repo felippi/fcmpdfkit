@@ -10,6 +10,16 @@ Add root atribute noPageBreak, util on beforePageAdded for avoid recursion and f
 
 Add roundedRectUp, roundedRectMid, roundedRectDown, drawRuler
 
+### Typescript
+If you use typescript, need add fcmpdfkit to typeroots for auto complete and typecheck
+
+tsconfig.json
+```json
+"typeRoots": [
+  "./node_modules/@types", "./node_modules/fcmpdfkit"
+]
+```
+
 ## Description
 
 PDFKit is a PDF document generation library for Node and the browser that makes creating complex, multi-page, printable
