@@ -1,6 +1,6 @@
 {
-  "name": "pdfkit",
-  "description": "A PDF generation library for Node.js",
+  "name": "fcmpdfkit",
+  "description": "A PDF generation library for Node.js, fork of PDFKit",
   "keywords": [
     "pdf",
     "pdf writer",
@@ -9,19 +9,19 @@
     "document",
     "vector"
   ],
-  "version": "0.13.0",
-  "homepage": "http://pdfkit.org/",
+  "version": "0.1.0",
+  "homepage": "",
   "author": {
-    "name": "Devon Govett",
-    "email": "devongovett@gmail.com",
-    "url": "http://badassjs.com/"
+    "name": "Felippi CM",
+    "email": "felippicm@gmail.com",
+    "url": ""
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/foliojs/pdfkit.git"
+    "url": "https://github.com/felippi/fcmpdfkit.git"
   },
-  "bugs": "https://github.com/foliojs/pdfkit/issues",
+  "bugs": "https://github.com/felippi/fcmpdfkit/issues",
   "devDependencies": {
     "@babel/core": "^7.11.6",
     "@babel/plugin-external-helpers": "^7.10.4",

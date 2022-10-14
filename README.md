@@ -1,6 +1,14 @@
-# PDFKit
+# FcmPDFKit - Fork of PDFKit
 
 A JavaScript PDF generation library for Node and the browser.
+
+## Diff against PDFKit
+
+Add event beforePageAdded
+
+Add root atribute noPageBreak, util on beforePageAdded for avoid recursion and for your self-control, like on printing footer
+
+Add roundedRectUp, roundedRectMid, roundedRectDown, drawRuler
 
 ## Description
 
