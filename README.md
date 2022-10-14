@@ -16,7 +16,7 @@ If you use typescript, need add fcmpdfkit to typeroots for auto complete and typ
 tsconfig.json
 ```json
 "typeRoots": [
-  "./node_modules/@types", "./node_modules/fcmpdfkit"
+  "./node_modules/@types", "./node_modules/fcmpdfkit/types"
 ]
 ```
 

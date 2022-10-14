@@ -473,7 +473,7 @@ declare namespace FcmPDFKit {
     }
 }
 
-declare module 'fcmpdfkit' {
+declare module '' {
     var doc: FcmPDFKit.PDFDocument;
     export = doc;
 }

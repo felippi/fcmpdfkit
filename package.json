@@ -9,7 +9,7 @@
     "document",
     "vector"
   ],
-  "version": "0.1.3",
+  "version": "0.1.4",
   "homepage": "",
   "author": {
     "name": "Felippi CM",
@@ -54,7 +54,7 @@
   },
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "rollup -c && browserify --standalone PDFDocument --ignore crypto --ignore iconv-lite js/pdfkit.js > js/pdfkit.standalone.js && touch ./js/index.d.ts",
+    "build": "rollup -c && browserify --standalone PDFDocument --ignore crypto --ignore iconv-lite js/pdfkit.js > js/pdfkit.standalone.js",
     "browserify-example": "browserify examples/browserify/browser.js > examples/browserify/bundle.js",
     "pdf-guide": "node docs/generate.js",
     "website": "node docs/generate_website.js",
@@ -66,7 +66,7 @@
     "test:visual": "jest visual/ -i",
     "test:unit": "jest unit/"
   },
-  "types": "./types/index.d.ts",
+  "types": "./types/fcmpdfkit/index.d.ts",
   "main": "js/pdfkit.js",
   "module": "js/pdfkit.es5.js",
   "esnext": "js/pdfkit.esnext.js",
