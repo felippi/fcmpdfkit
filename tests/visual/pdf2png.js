@@ -1,6 +1,6 @@
 import Canvas from 'canvas';
 import { strict as assert } from 'assert';
-import * as pdfjsLib from 'pdfjs-dist/es5/build/pdf';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
 // adapted from https://github.com/mozilla/pdf.js/tree/master/examples/node/pdf2png
 
@@ -11,7 +11,7 @@ class NodeCanvasFactory {
     const context = canvas.getContext('2d');
     return {
       canvas,
-      context
+      context,
     };
   }
 
@@ -38,7 +38,7 @@ async function pdf2png(data, { systemFonts } = {}) {
   // Load the PDF file.
   const loadingTask = pdfjsLib.getDocument({
     data,
-    disableFontFace: !systemFonts
+    disableFontFace: !systemFonts,
   });
 
   const pdfDocument = await loadingTask.promise;
@@ -54,12 +54,12 @@ async function pdf2png(data, { systemFonts } = {}) {
     const canvasFactory = new NodeCanvasFactory();
     const canvasAndContext = canvasFactory.create(
       viewport.width,
-      viewport.height
+      viewport.height,
     );
     const renderContext = {
       canvasContext: canvasAndContext.context,
       viewport,
-      canvasFactory
+      canvasFactory,
     };
     const renderTask = page.render(renderContext);
     await renderTask.promise;

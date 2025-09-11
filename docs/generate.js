@@ -16,52 +16,52 @@ const styles = {
   h1: {
     font: 'fonts/Alegreya-Bold.ttf',
     fontSize: 25,
-    padding: 15
+    padding: 15,
   },
   h2: {
     font: 'fonts/Alegreya-Bold.ttf',
     fontSize: 18,
-    padding: 10
+    padding: 10,
   },
   h3: {
     font: 'fonts/Alegreya-Bold.ttf',
     fontSize: 18,
-    padding: 10
+    padding: 10,
   },
   para: {
     font: 'fonts/Merriweather-Regular.ttf',
     fontSize: 10,
-    padding: 10
+    padding: 10,
   },
   code: {
     font: 'fonts/SourceCodePro-Regular.ttf',
-    fontSize: 9
+    fontSize: 9,
   },
   code_block: {
     padding: 10,
-    background: '#2c2c2c'
+    background: '#2c2c2c',
   },
   inlinecode: {
     font: 'fonts/SourceCodePro-Bold.ttf',
-    fontSize: 10
+    fontSize: 10,
   },
   listitem: {
     font: 'fonts/Merriweather-Regular.ttf',
     fontSize: 10,
-    padding: 6
+    padding: 6,
   },
   link: {
     font: 'fonts/Merriweather-Regular.ttf',
     fontSize: 10,
     color: 'blue',
-    underline: true
+    underline: true,
   },
   example: {
     font: 'Helvetica',
     fontSize: 9,
     color: 'black',
-    padding: 10
-  }
+    padding: 10,
+  },
 };
 
 // syntax highlighting colors
@@ -89,7 +89,7 @@ const colors = {
   quote: '#93a1a1',
   link: '#93a1a1',
   special: '#6c71c4',
-  default: '#002b36'
+  default: '#002b36',
 };
 
 // shared lorem ipsum text so we don't need to copy it into every example
@@ -135,7 +135,7 @@ class Node {
           const color = colors[style] || colors.default;
           const opts = {
             color,
-            continued: text !== '\n'
+            continued: text !== '\n',
           };
 
           return this.content.push(new Node(['code', opts, text]));
@@ -164,7 +164,7 @@ class Node {
   }
 
   // sets the styles on the document for this node
-  setStyle (doc) {
+  setStyle(doc) {
     if (this.style.font) {
       doc.font(this.style.font);
     }
@@ -189,7 +189,7 @@ class Node {
   }
 
   // renders this node and its subnodes to the document
-  render (doc, continued) {
+  render(doc, continued) {
     let y;
     if (continued == null) {
       continued = false;
@@ -207,10 +207,17 @@ class Node {
         ({ y } = doc);
         doc.x = doc.y = 0;
 
+        // Update the page width for those which rely on the width of the document
+        var docPageWidth = doc.page.width;
+        var docPageHeight = doc.page.height;
+        var docPageMargins = doc.page.margins;
+        doc.page.width = doc.page.width - x - doc.page.margins.right;
+        doc.page.margins = { top: 0, left: 0, right: 0, bottom: 0 };
+
         // run the example code with the document
         vm.runInNewContext(this.code, {
           doc,
-          lorem
+          lorem,
         });
 
         // restore points and styles
@@ -218,6 +225,9 @@ class Node {
         doc.restore();
         doc.x = x;
         doc.y = y + this.height;
+        doc.page.width = docPageWidth;
+        doc.page.height = docPageHeight;
+        doc.page.margins = docPageMargins;
         break;
       case 'hr':
         doc.addPage();
@@ -226,6 +236,12 @@ class Node {
         // loop through subnodes and render them
         for (let index = 0; index < this.content.length; index++) {
           const fragment = this.content[index];
+
+          if (this.type === 'numberlist') {
+            let node = new Node(['inlinecode', `${index + 1}. `]);
+            fragment.content.splice(0, 0, node);
+          }
+
           if (fragment.type === 'text') {
             // add a new page for each heading, unless it follows another heading
             if (
@@ -257,7 +273,7 @@ class Node {
           } else {
             fragment.render(
               doc,
-              index < this.content.length - 1 && this.type !== 'bulletlist'
+              index < this.content.length - 1 && this.type !== 'bulletlist',
             );
           }
 
@@ -286,7 +302,7 @@ const render = (doc, filename) => {
 };
 
 // renders the title page of the guide
-const renderTitlePage = doc => {
+const renderTitlePage = (doc) => {
   const title = 'PDFKit Guide';
   const author = 'By Devon Govett';
   const version = `Version ${require('../package.json').version}`;
@@ -301,13 +317,13 @@ const renderTitlePage = doc => {
   doc.y -= 10;
   doc.text(author, {
     align: 'center',
-    indent: w - doc.widthOfString(author)
+    indent: w - doc.widthOfString(author),
   });
 
   doc.font(styles.para.font, 10);
   doc.text(version, {
     align: 'center',
-    indent: w - doc.widthOfString(version)
+    indent: w - doc.widthOfString(version),
   });
 
   doc.addPage();
@@ -328,5 +344,6 @@ render(doc, 'forms.md');
 render(doc, 'destinations.md');
 render(doc, 'attachments.md');
 render(doc, 'accessibility.md');
+render(doc, 'table.md');
 render(doc, 'you_made_it.md');
 doc.end();

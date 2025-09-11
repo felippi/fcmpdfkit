@@ -1,6 +1,6 @@
 import PDFDocument from '../../lib/document';
 import PDFSecurity from '../../lib/security';
-import { logData } from './helpers';
+import { logData, joinTokens } from './helpers';
 import PDFFontFactory from '../../lib/font_factory';
 
 // manual mock for PDFSecurity to ensure stored id will be the same accross different systems
@@ -8,22 +8,12 @@ PDFSecurity.generateFileID = () => {
   return Buffer.from('mocked-pdf-id');
 };
 
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-function joinTokens(...args) {
-  let a = args.map(i => escapeRegExp(i));
-  let r = new RegExp('^' + a.join('\\s*') + '$');
-  return r;
-}
-
 describe('acroform', () => {
   let doc;
 
   beforeEach(() => {
     doc = new PDFDocument({
-      info: { CreationDate: new Date(Date.UTC(2018, 1, 1)) }
+      info: { CreationDate: new Date(Date.UTC(2018, 1, 1)) },
     });
   });
 
@@ -52,9 +42,9 @@ describe('acroform', () => {
         '>>',
         ']',
         '>>',
-        '>>'
+        '>>',
       ),
-      'endobj'
+      'endobj',
     ];
     const docData = logData(doc);
     doc.addNamedJavaScript('name1', 'my javascript goes here');
@@ -102,9 +92,9 @@ describe('acroform', () => {
         '[10 292 602 692]',
         '/Border [0 0 0]',
         '/C [0 0 0]',
-        '>>'
+        '>>',
       ),
-      'endobj'
+      'endobj',
     ];
 
     const docData = logData(doc);
@@ -134,13 +124,13 @@ describe('acroform', () => {
     const expected = [
       '10 0 obj',
       '<<\n/FT /Btn\n/Ff 65536\n/MK <<\n/CA (Test Button)\n/BG [1 1 0]\n>>\n/T (btn1)\n/Subtype /Widget\n/F 4\n/Type /Annot\n/Rect [20 742 120 772]\n/Border [0 0 0]\n/C [0 0 0]\n>>',
-      'endobj'
+      'endobj',
     ];
     doc.initForm();
     const docData = logData(doc);
     let opts = {
       backgroundColor: 'yellow',
-      label: 'Test Button'
+      label: 'Test Button',
     };
     doc.formPushButton('btn1', 20, 20, 100, 30, opts);
     expect(docData.length).toBe(3);
@@ -157,7 +147,7 @@ describe('acroform', () => {
           '/JS (AFNumber_Keystroke\\(2,1,"MinusBlack",null,"$",true\\);)\n>>\n' +
           '/F <<\n/S /JavaScript\n/JS (AFNumber_Format\\(2,1,"MinusBlack",null,"$",true\\);)\n>>\n>>\n' +
           '/T (dollars)\n/Subtype /Widget\n/F 4\n/Type /Annot\n/Rect [20 752 70 772]\n/Border [0 0 0]\n/C [0 0 0]\n>>',
-        'endobj'
+        'endobj',
       ];
       doc.initForm();
       const docData = logData(doc);
@@ -167,8 +157,8 @@ describe('acroform', () => {
           type: 'number',
           nDec: 2,
           currency: '$',
-          currencyPrepend: true
-        }
+          currencyPrepend: true,
+        },
       };
       doc.formText('dollars', 20, 20, 50, 20, opts);
       expect(docData.length).toBe(3);
@@ -181,7 +171,7 @@ describe('acroform', () => {
           '/JS (AFDate_KeystrokeEx\\(yyyy-mm-dd\\);)\n>>\n' +
           '/F <<\n/S /JavaScript\n/JS (AFDate_Format\\(yyyy-mm-dd\\);)\n>>\n>>\n' +
           '/T (date)\n/Subtype /Widget\n/F 4\n/Type /Annot\n/Rect [20 752 70 772]\n/Border [0 0 0]\n/C [0 0 0]\n>>',
-        'endobj'
+        'endobj',
       ];
       doc.initForm();
       const docData = logData(doc);
@@ -189,8 +179,8 @@ describe('acroform', () => {
         value: '1999-12-31',
         format: {
           type: 'date',
-          param: 'yyyy-mm-dd'
-        }
+          param: 'yyyy-mm-dd',
+        },
       };
       doc.formText('date', 20, 20, 50, 20, opts);
       expect(docData.length).toBe(3);
@@ -204,7 +194,7 @@ describe('acroform', () => {
       '<<\n/FT /Tx\n' +
         '/Ff 4206599\n/Q 1\n' +
         '/T (flags)\n/Subtype /Widget\n/F 4\n/Type /Annot\n/Rect [20 752 70 772]\n/Border [0 0 0]\n/C [0 0 0]\n>>',
-      'endobj'
+      'endobj',
     ];
     doc.initForm();
     const docData = logData(doc);
@@ -215,11 +205,38 @@ describe('acroform', () => {
       align: 'center',
       multiline: true,
       password: true,
-      noSpell: true
+      noSpell: true,
     };
     doc.formText('flags', 20, 20, 50, 20, opts);
     expect(docData.length).toBe(3);
     expect(docData).toContainChunk(expected);
+  });
+
+  test('false flags should be ignored', () => {
+    const expectedDoc = new PDFDocument({
+      info: { CreationDate: new Date(Date.UTC(2018, 1, 1)) },
+    });
+    expectedDoc.initForm();
+    const expectedDocData = logData(expectedDoc);
+    let emptyOpts = {
+      align: 'center',
+    };
+    expectedDoc.formText('flags', 20, 20, 50, 20, emptyOpts);
+
+    doc.initForm();
+    const docData = logData(doc);
+    let opts = {
+      required: false,
+      noExport: false,
+      readOnly: false,
+      align: 'center',
+      multiline: false,
+      password: false,
+      noSpell: false,
+    };
+    doc.formText('flags', 20, 20, 50, 20, opts);
+
+    expect(docData).toContainChunk(expectedDocData);
   });
 
   test('font size', () => {
@@ -243,13 +260,13 @@ describe('acroform', () => {
         '/C [0 0 0]\n' +
         '/FontSize 16\n' +
         '>>',
-      'endobj'
+      'endobj',
     ];
     doc.registerFont('myfont1', 'tests/fonts/Roboto-Regular.ttf');
     doc.initForm();
     const docData = logData(doc);
     let opts = {
-      fontSize: 16
+      fontSize: 16,
     };
     doc.font('myfont1').formText('text', 20, 20, 50, 20, opts);
     expect(docData.length).toBe(3);
@@ -266,7 +283,7 @@ describe('acroform', () => {
       'endobj',
       '15 0 obj',
       '<<\n/Parent 12 0 R\n/FT /Tx\n/T (leaf3)\n/Subtype /Widget\n/F 4\n/Type /Annot\n/Rect [10 642 210 682]\n/Border [0 0 0]\n/C [0 0 0]\n>>',
-      'endobj'
+      'endobj',
     ];
     const expected2 = [
       '11 0 obj',
@@ -280,7 +297,7 @@ describe('acroform', () => {
       'endobj',
       '9 0 obj',
       '<<\n/Fields [10 0 R]\n/NeedAppearances true\n/DA (/F1 0 Tf 0 g)\n/DR <<\n/Font <<\n/F1 8 0 R\n>>\n>>\n>>',
-      'endobj'
+      'endobj',
     ];
 
     const docData = logData(doc);

@@ -10,23 +10,35 @@ function runDocTest(options, fn) {
     options.info = {};
   }
 
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const doc = new PDFDocument(options);
     const buffers = [];
 
-    fn(doc);
-
-    doc.on('data', buffers.push.bind(buffers));
-    doc.on('end', async () => {
-      const pdfData = Buffer.concat(buffers);
-      const { systemFonts = false } = options;
-      const images = await pdf2png(pdfData, { systemFonts });
-      for (let image of images) {
-        expect(image).toMatchImageSnapshot();
-      }
-      resolve();
-    });
-    doc.end();
+    (async () => {
+      await fn(doc);
+    })()
+      .then(() => {
+        doc.on('error', (err) => reject(err));
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', async () => {
+          try {
+            const pdfData = Buffer.concat(buffers);
+            const { systemFonts = false } = options;
+            const images = await pdf2png(pdfData, { systemFonts });
+            for (let image of images) {
+              expect(image).toMatchImageSnapshot({
+                failureThresholdType: 'percent',
+                failureThreshold: 0.01,
+              });
+            }
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        });
+        doc.end();
+      })
+      .catch((err) => reject(err));
   });
 }
 

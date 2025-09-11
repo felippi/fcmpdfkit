@@ -15,7 +15,7 @@ describe('file', () => {
 
   beforeEach(() => {
     document = new PDFDocument({
-      info: { CreationDate: date }
+      info: { CreationDate: date },
     });
   });
 
@@ -26,13 +26,11 @@ describe('file', () => {
       name: 'file.txt',
       type: 'text/plain',
       creationDate: date,
-      modifiedDate: date
+      modifiedDate: date,
     });
     document.end();
 
-    const md5 = createHash('md5')
-      .update('example text')
-      .digest('hex');
+    const md5 = createHash('md5').update('example text').digest('hex');
 
     expect(docData).toContainChunk([
       `8 0 obj`,
@@ -47,19 +45,20 @@ describe('file', () => {
 /Subtype /text#2Fplain
 /Length 20
 /Filter /FlateDecode
->>`
+>>`,
     ]);
 
     expect(docData).toContainChunk([
       `9 0 obj`,
       `<<
 /Type /Filespec
+/AFRelationship /Unspecified
 /F (file.txt)
 /EF <<
 /F 8 0 R
 >>
 /UF (file.txt)
->>`
+>>`,
     ]);
 
     expect(docData).toContainChunk([
@@ -74,7 +73,7 @@ describe('file', () => {
     (file.txt) 9 0 R
 ]
 >>
->>`
+>>`,
     ]);
   });
 
@@ -85,13 +84,11 @@ describe('file', () => {
       name: 'file.txt',
       creationDate: date,
       modifiedDate: date,
-      description: 'file description'
+      description: 'file description',
     });
     document.end();
 
-    const md5 = createHash('md5')
-      .update('example text')
-      .digest('hex');
+    const md5 = createHash('md5').update('example text').digest('hex');
 
     expect(docData).toContainChunk([
       `8 0 obj`,
@@ -105,20 +102,21 @@ describe('file', () => {
 >>
 /Length 20
 /Filter /FlateDecode
->>`
+>>`,
     ]);
 
     expect(docData).toContainChunk([
       `9 0 obj`,
       `<<
 /Type /Filespec
+/AFRelationship /Unspecified
 /F (file.txt)
 /EF <<
 /F 8 0 R
 >>
 /UF (file.txt)
 /Desc (file description)
->>`
+>>`,
     ]);
   });
 
@@ -129,13 +127,11 @@ describe('file', () => {
       name: 'file.txt',
       creationDate: date,
       modifiedDate: date,
-      hidden: true
+      hidden: true,
     });
     document.end();
 
-    const md5 = createHash('md5')
-      .update('example text')
-      .digest('hex');
+    const md5 = createHash('md5').update('example text').digest('hex');
 
     expect(docData).toContainChunk([
       `8 0 obj`,
@@ -149,7 +145,7 @@ describe('file', () => {
 >>
 /Length 20
 /Filter /FlateDecode
->>`
+>>`,
     ]);
 
     // hidden: do not add to /EmbeddedFiles
@@ -160,7 +156,7 @@ describe('file', () => {
   /Names [
 ]
 >>
->>`
+>>`,
     ]);
   });
 
@@ -170,12 +166,12 @@ describe('file', () => {
     document.file(Buffer.from('example text'), {
       name: 'file1.txt',
       creationDate: date,
-      modifiedDate: date
+      modifiedDate: date,
     });
     document.file(Buffer.from('example text'), {
       name: 'file2.txt',
       creationDate: date,
-      modifiedDate: date
+      modifiedDate: date,
     });
     document.end();
 
@@ -192,7 +188,45 @@ describe('file', () => {
     (file2.txt) 11 0 R
 ]
 >>
->>`
+>>`,
+    ]);
+  });
+
+  test('attach the same file multiple times', () => {
+    const docData = logData(document);
+
+    document.file(Buffer.from('example text'), {
+      name: 'file1.txt',
+      creationDate: date,
+      modifiedDate: date,
+    });
+    document.file(Buffer.from('example text'), {
+      name: 'file1.txt',
+      creationDate: new Date(date),
+      modifiedDate: new Date(date),
+    });
+    document.end();
+
+    const numFiles = docData.filter(
+      (str) =>
+        typeof str === 'string' && str.startsWith('<<\n/Type /EmbeddedFile\n'),
+    );
+
+    expect(numFiles.length).toEqual(1);
+
+    expect(docData).toContainChunk([
+      `2 0 obj`,
+      `<<
+/Dests <<
+  /Names [
+]
+>>
+/EmbeddedFiles <<
+  /Names [
+    (file1.txt) 10 0 R
+]
+>>
+>>`,
     ]);
   });
 });

@@ -1,4 +1,4 @@
-import diff from 'jest-diff';
+import { diff } from 'jest-diff';
 
 const buildMessage = (utils, data, chunk, headIndex) => {
   let message;
@@ -46,13 +46,13 @@ export default {
     if (pass) {
       return {
         pass: true,
-        message: passMessage(this.utils, data, chunk, headIndex)
+        message: passMessage(this.utils, data, chunk, headIndex),
       };
     }
 
     return {
       pass: false,
-      message: failMessage(this.utils, data, chunk, headIndex)
+      message: failMessage(this.utils, data, chunk, headIndex),
     };
-  }
+  },
 };

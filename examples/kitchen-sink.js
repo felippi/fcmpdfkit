@@ -1,4 +1,4 @@
-var PDFDocument = require('../js/pdfkit');
+var PDFDocument = require('../');
 var tiger = require('./tiger');
 var fs = require('fs');
 
@@ -111,5 +111,43 @@ doc
   .fillColor('#000')
   .font('fonts/Chalkboard.ttc', 'Chalkboard', 16)
   .list(['One', 'Two', 'Three'], 100, 150);
+
+// Create text with a spot color
+doc.addSpotColor('PANTONE185C', 0, 100, 78, 9)
+doc.moveDown()
+    .fillColor('PANTONE185C')
+    .text('This text uses spot color!');
+
+doc.moveDown();
+
+doc
+  .font('Helvetica')
+  .fillColor('#000')
+  .text('Horizontal scaling support:');
+
+doc.moveDown();
+
+doc
+  .text(loremIpsum, {
+    height: 100,
+    width: 300,
+    align: 'justify',
+  });
+
+doc
+  .text(loremIpsum, {
+    height: 100,
+    width: 300,
+    align: 'justify',
+    horizontalScaling: 75
+  });
+
+doc
+  .text(loremIpsum, {
+    height: 100,
+    width: 300,
+    align: 'justify',
+    horizontalScaling: 130
+  });
 
 doc.end();
