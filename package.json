@@ -9,7 +9,7 @@
     "document",
     "vector"
   ],
-  "version": "0.1.5",
+  "version": "0.2.0",
   "homepage": "http://pdfkit.org/",
   "author": {
     "name": "Felippi CM",
@@ -73,6 +73,7 @@
   },
   "main": "js/pdfkit.js",
   "module": "js/pdfkit.es.js",
+  "types": "types/fcmpdfkit/index.d.ts",
   "browserify": {
     "transform": [
       "brfs"
