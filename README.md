@@ -4,11 +4,115 @@ A JavaScript PDF generation library for Node and the browser.
 
 ## Diff against PDFKit
 
-Add event beforePageAdded
+### Page Events
+- **`beforePageAdded`**: New event emitted before a new page is added to the document. Useful for drawing elements that span across multiple pages (like borders or continuous rectangles).
+- **`pageAdded`**: Existing PDFKit event, now integrated with FCM system to automatically update multi-page rectangle positions.
 
-Add root atribute noPageBreak, util on beforePageAdded for avoid recursion and for your self-control, like on printing footer
+### Page Break Control
+- **`noPageBreak`**: New boolean property that controls whether automatic page breaks should be blocked. Especially useful within the `beforePageAdded` listener to avoid infinite recursion and provide full control over when pages are added.
 
-Add roundedRectUp, roundedRectMid, roundedRectDown, drawRuler
+### Enhanced Drawing Methods
+- **`roundedRectUp(x, y, w, h, r)`**: Draws the top portion of a rounded rectangle (rounded top borders)
+- **`roundedRectMid(x, y, w, h, r)`**: Draws the middle portion of a rectangle (straight side borders)
+- **`roundedRectDown(x, y, w, h, r)`**: Draws the bottom portion of a rounded rectangle (rounded bottom borders)
+- **`drawRuler(x, y)`**: Draws a graduated ruler to assist with element positioning during development
+- **`drawRowLabelTexts(items, options)`**: Renders collections of items with labels in intelligent multi-line layouts with auto-sizing and multi-page support
+
+### Multi-Page Rectangle System
+- **`startRect(options)`**: Starts a rectangle that can extend across multiple pages
+- **`stopRect()`**: Ends a multi-page rectangle
+- Options: `x`, `y`, `w` (width), `r` (radius), `lineWidth`, `padding`
+
+### Positioning Utilities
+- **`incX(x)`, `incY(y)`, `incXY(x, y)`**: Increment current position
+- **`setX(x)`, `setY(y)`, `setXY(x, y)`**: Set absolute position
+- **`startX()`**: Return to left margin of the page
+- **`usefulH`, `usefulW`**: Properties that return useful height and width (excluding margins)
+
+### Smart Page Control
+- **`tryAddPage(minSize)`**: Automatically adds a new page if remaining space is less than `minSize`
+
+### Usage Examples for New Features
+
+#### Multi-Page Rectangle
+```javascript
+const doc = new PDFDocument();
+
+// Start a rectangle with border
+doc.startRect({
+  x: 50,           // x position
+  y: 100,          // y position  
+  w: 400,          // width
+  r: 5,            // rounded corners radius
+  lineWidth: 1.5   // line thickness
+});
+
+// Add content that may break across multiple pages
+doc.text('Long content...', 60, 110);
+// ... more content ...
+
+// End the rectangle (will be drawn automatically)
+doc.stopRect();
+```
+
+#### Manual Page Break Control
+```javascript
+doc.addListener('beforePageAdded', function() {
+  // Block automatic breaks for full control
+  const oldNoPageBreak = this.noPageBreak;
+  this.noPageBreak = true;
+  
+  // Draw footer or other page elements
+  this.text('Page footer', 50, this.page.height - 50);
+  
+  // Restore original behavior
+  this.noPageBreak = oldNoPageBreak;
+});
+```
+
+#### Smart Positioning
+```javascript
+// Use useful properties for calculations
+const centerX = doc.usefulW / 2;
+const centerY = doc.usefulH / 2;
+
+// Position elements relatively
+doc.setXY(50, 100);
+doc.text('Text 1');
+doc.incY(20);  // Move 20 points down
+doc.text('Text 2');
+
+// Add page if necessary (minimum 100 points free)
+doc.tryAddPage(100);
+```
+
+#### Development Ruler
+```javascript
+// Useful during development to visualize positions
+doc.drawRuler(0, 0);  // Draw ruler at top-left corner
+```
+
+#### Row Label Texts Layout
+```javascript
+// Simple text items that auto-wrap
+doc.drawRowLabelTexts(['Item 1', 'Item 2', 'Item 3']);
+
+// Complex layout with labels, custom styling and borders
+const formData = [
+  { label: 'Name:', text: 'John Doe', w: 200 },
+  { label: 'Age:', text: '30', w: 100 },
+  { label: 'Email:', text: 'john@example.com', link: 'mailto:john@example.com' },
+  { label: 'Address:', text: 'Long address that will wrap automatically' }
+];
+
+doc.drawRowLabelTexts(formData, {
+  label: { font: 'Helvetica-Bold', size: 12 },
+  text: { font: 'Helvetica', size: 10 },
+  box: { radius: 5 },     // Container border
+  padding: 10,            // Spacing
+  divider: true          // Add line separators
+});
+```
 
 ### Typescript
 If you use typescript, need add fcmpdfkit to typeroots for auto complete and typecheck
