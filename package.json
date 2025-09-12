@@ -66,6 +66,7 @@
     "lint": "eslint {lib,tests}/**/*.js",
     "prettier": "prettier lib tests docs",
     "dev-fcm": "cd examples && node fcm-demo.js",
+    "generate-types": "node scripts/update-types.js",
     "test": "jest",
     "test:visual": "jest visual/",
     "test:unit": "jest unit/"
