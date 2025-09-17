@@ -1025,6 +1025,8 @@ declare namespace FcmPDFKit {
     x: number;
     y: number;
 
+    noPageBreak: boolean;
+
     new(options?: PDFDocumentOptions): PDFDocument;
 
     addPage(options?: PDFDocumentOptions): PDFDocument;
