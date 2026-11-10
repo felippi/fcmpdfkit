@@ -12,6 +12,10 @@ Changes specific to the fork. The upstream PDFKit changelog follows below.
 - The type definitions still describe the API up to PDFKit 0.17; the APIs added in 0.18–0.20.2 are not typed yet (#2)
 - Browser: PNG images are now decompressed in a Web Worker created from a `blob:` URL. A Content Security Policy must allow `worker-src blob:` (or `script-src blob:` when `worker-src` is absent)
 - Node: the standard fonts are loaded from `js/standard-fonts` next to `js/pdfkit.js` on first use. Mark `fcmpdfkit` as external if the application is bundled
+- Fix `drawRowLabelTexts(items)` without options throwing `Cannot read properties of undefined (reading 'divider')` and leaving `noPageBreak` stuck at `true`
+- Fix the fixed heights `label.h` and `text.h` of `drawRowLabelTexts` having no effect: `label.h` was read from `text.h`, and a fixed height never reached the row height. Items without fixed heights are laid out as before
+- Fix `startRect` and `drawRowLabelTexts` replacing an explicit `x: 0` or `y: 0` with the current position. `undefined` still means the current position
+- Fix `drawRuler` never stroking its ticks, so only the numbers showed up
 
 ## pdfkit changelog
 
