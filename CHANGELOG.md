@@ -2,6 +2,70 @@
 
 ### Unreleased
 
+### [v0.20.2] - 2026-08-29
+
+- Fix bundlers and file tracers packing the ESM copies of the standard font metrics instead of the CommonJS ones the Node build actually loads, which left `Cannot find module` errors for every standard font at runtime, by resolving the internal `#standard-fonts/*` mapping to a single file under all conditions
+- Fix `doc.file()` throwing when the same in-memory attachment is embedded twice under one name, because the creation and modified dates the deduplication check compares are absent for sources that are not read from disk
+- Fix `doc.text()` throwing `unsupported number: NaN` when `lineBreak: false` is combined with `underline`, `strike`, `link` or `goTo`, because the rendered width was computed from the line wrapper's measurements, which are never produced when wrapping is disabled
+
+### [v0.20.1] - 2026-08-23
+
+- Add a Node ESM build so `import 'pdfkit'` in Node resolves to the Node build (real file system, native zlib, Node streams, self-registering standard fonts) instead of the browser bundle
+
+### [v0.20.0] - 2026-08-23
+
+- [BREAKING CHANGE] Remove the virtual file system (`pdfkit/virtual-fs`). Browser builds no longer depend on `fs`: use `registerFile` to register `Uint8Array` data under a path, pass a `Uint8Array` or `ArrayBuffer` directly to `registerFont`, `image` and `file`, or pass a data URL directly to `image` and `file`
+- Add `registerFile(path, data, options)` to globally register in-memory files in Node and browsers, with optional `birthtime` and `ctime` metadata. Passing `undefined` as data unregisters the path
+- [BREAKING CHANGE] Export `PDFDocument`, `LineWrapper` and `registerFile` as named exports from the main Node and browser entry points while preserving the default `PDFDocument` export
+- Add experimental `toBlob(document)` and `toBytes(document)` output helpers under `pdfkit/output`
+- Accept already-parsed fontkit `Font` instances in `doc.font()` and `registerFont`
+- Load the PDF/A ICC profile from disk only when needed in Node, while continuing to bundle it in browser builds
+- Add tools to convert raw AFM standard-font definitions into parsed or compact runtime JavaScript modules
+- [BREAKING CHANGE] Use generated standard-font data instead of parsing raw AFM definitions at runtime. Node loads font metrics lazily; browser applications must import each font they use from `pdfkit/standard-fonts/*` and register it with `registerStdFonts()`
+- [BREAKING CHANGE] Restrict AcroForm options to documented mappings and explicit escape hatches.
+- [BREAKING CHANGE] Stop automatically uppercasing annotation option keys.
+- [BREAKING CHANGE] Throw from `addNamedEmbeddedFile` when no ref is given, instead of writing an unparseable `undefined` token into the `/EmbeddedFiles` name tree
+- Do not mutate options passed to `doc.annotate()` and its convenience methods (link, note, strike, lineAnnotation, rectAnnotation, ellipseAnnotation, textAnnotation, fileAnnotation)
+- Persist font options when adding a new page. Fixes #1739
+- Use `Uint8Array` instead of Node's `Buffer` internally
+- Fix `date` text field formatting emitting invalid JavaScript, so the format was never applied. Fixes #1546
+- Fix `indentAllLines` applying the indent again on every paragraph and every page break, and keep it applied across continued text. Fixes #1606
+- Fix a hole in a sparse array being skipped entirely, which shifted every later entry down one
+- Encrypt strings inside name trees. Fixes #1513
+
+### [v0.19.1] - 2026-06-10
+
+- Fix RGB JPEG embedded as DeviceGray (0.19.0 regression) (#1734)
+
+### [v0.19.0] - 2026-06-07
+
+- Bump node version requirement to 20+
+- Bump minimum supported browsers to Firefox 115, iOS/Safari 16
+- Fix text with input x as null
+- Add opacity option to `doc.image()` to control image transparency
+- Fix corrupted PDF when mixing standard and embedded fonts that share postscript name
+- Fix PDF/UA compliance issues in kitchen-sink-accessible example
+- Add bbox and placement options to PDFStructureElement for PDF/UA compliance
+- Extend `roundedRect` with `borderRadius` as number for all corners or per-corner array (CSS order)
+- Fix accessibility: scope in TH element
+- Fix PDF Name escaping for spot colors with spaces ([#1644](https://github.com/foliojs/pdfkit/issues/1644))
+
+### [v0.18.0] - 2026-03-14
+
+- Fix garbled text copying in Chrome/Edge for PDFs with >256 unique characters (#1659)
+- Fix Link accessibility issues
+- Fix Table Accessibility Issue: Operator CS/cs not allowed in this current state
+- Fix Interlaced PNG with indexed transparency rendered incorrectly
+- Fix SVG path parser incorrectly handle arc flags without separators
+- Add pageLayout option to control how pages are displayed in PDF viewers
+- Preserve existing PageMode instead of overwriting when adding outlines
+- Add userUnit option for custom page units (PDF 1.6)
+- Support outlines that jump to specific page positions with custom zoom level
+- Add robust handling of null byte padding in JPEG images
+- Replace outdated jpeg-exif with minimal implementation
+- Replace outdated crypto-js with maintained small alternatives
+- Fix issue with indentation with `indentAllLines: true` when a new page is created
+
 ### [v0.17.2] - 2025-08-30
 
 - Fix rendering lists that spans across pages
@@ -11,7 +75,7 @@
 - Fix null values in table cells rendering as `[object Object]`
 - Fix further LineWrapper precision issues
 - Optmize standard font handling. Less code, less memory usage
- 
+
 ### [v0.17.0] - 2025-04-12
 
 - Fix precision rounding issues in LineWrapper
