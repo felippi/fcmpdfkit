@@ -192,5 +192,117 @@ Q
 
       expect(docData).toContainText({ text });
     });
+
+    test('with null x coordinate', () => {
+      const docData = logData(document);
+
+      document.text('text with null x', null, 50);
+      document.end();
+
+      expect(docData).toContainText({ text: 'text with null x' });
+    });
+
+    test.each([
+      ['underline', { underline: true }],
+      ['strike', { strike: true }],
+      ['link', { link: 'http://example.com/' }],
+      ['goTo', { goTo: 'anchor' }],
+    ])('with lineBreak false and %s', (_name, extraOptions) => {
+      const docData = logData(document);
+
+      document.text('no line break', 50, 50, {
+        lineBreak: false,
+        ...extraOptions,
+      });
+      document.end();
+
+      expect(docData).toContainText({ text: 'no line break' });
+    });
+  });
+
+  describe('text with structure parent links', () => {
+    beforeEach(() => {
+      document = new PDFDocument({
+        info: { CreationDate: new Date(Date.UTC(2018, 1, 1)) },
+        compress: false,
+        tagged: true,
+      });
+    });
+
+    test('should auto-link text inside Link structure element', () => {
+      const docData = logData(document);
+
+      const linkElement = document.struct('Link', () => {
+        document.text('Click here', 100, 100, {
+          link: 'http://example.com',
+        });
+      });
+
+      document.addStructure(linkElement);
+      linkElement.end();
+      document.end();
+
+      const dataStr = docData.join('\n');
+      expect(dataStr).toContain('/S /Link');
+      expect(dataStr).toContain('/StructParent');
+    });
+
+    test('should not add StructParent outside Link structure', () => {
+      const docData = logData(document);
+
+      document.text('Click here', 100, 100, {
+        link: 'http://example.com',
+      });
+
+      document.end();
+
+      const dataStr = docData.join('\n');
+      expect(dataStr).toContain('/Subtype /Link');
+      expect(dataStr).not.toContain('/StructParent');
+    });
+
+    test('should not leak link options to subsequent structure elements with continued text', () => {
+      const docData = logData(document);
+
+      const paragraph = document.struct('P');
+      document.addStructure(paragraph);
+
+      paragraph.add(
+        document.struct('Span', () => {
+          document.text('This is some text before ', 100, 100, {
+            continued: true,
+          });
+        }),
+      );
+
+      paragraph.add(
+        document.struct('Link', () => {
+          document.text('Here is a link!', {
+            link: 'http://google.com/',
+            underline: true,
+            continued: true,
+          });
+        }),
+      );
+
+      paragraph.add(
+        document.struct('Span', () => {
+          document.text(' and this is text after the link.');
+        }),
+      );
+
+      paragraph.end();
+      document.end();
+
+      const dataStr = docData.join('\n');
+
+      // Count how many link annotations exist - should be exactly 1
+      const linkMatches = dataStr.match(/\/Subtype \/Link/g);
+      expect(linkMatches).toBeTruthy();
+      expect(linkMatches.length).toBe(1);
+
+      expect(dataStr).toContain('/S /Span');
+      expect(dataStr).toContain('/S /Link');
+    });
   });
 });

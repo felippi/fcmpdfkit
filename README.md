@@ -1,4 +1,4 @@
-# FcmPDFKit - Fork of PDFKit 0.17.2
+# FcmPDFKit - Fork of PDFKit 0.20.2
 
 A JavaScript PDF generation library for Node and the browser.
 
@@ -27,7 +27,7 @@ A JavaScript PDF generation library for Node and the browser.
 - **`incX(x)`, `incY(y)`, `incXY(x, y)`**: Increment current position
 - **`setX(x)`, `setY(y)`, `setXY(x, y)`**: Set absolute position
 - **`startX()`**: Return to left margin of the page
-- **`usefulH`, `usefulW`**: Properties that return useful height and width (excluding margins)
+- **`usefulH()`, `usefulW()`**: Methods that return useful height and width (excluding margins)
 
 ### Smart Page Control
 - **`tryAddPage(minSize)`**: Automatically adds a new page if remaining space is less than `minSize`

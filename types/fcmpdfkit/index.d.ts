@@ -2,7 +2,9 @@
 
 // Changed by Felippi CM from https://www.npmjs.com/package/@types/pdfkit
 
-// Type definitions for FcmPdfkit v0.1.3
+// Type definitions for FcmPdfkit v0.3.0 (fork of PDFKit 0.20.2)
+// Coverage: PDFKit API up to 0.17 plus the FCM mixin. The APIs added in PDFKit
+// 0.18–0.20.2 are not typed yet: https://github.com/felippi/fcmpdfkit/issues/2
 // Project: http://pdfkit.org
 // Definitions by: Eric Hillah <https://github.com/erichillah>
 //                 Erik Berreßem <https://github.com/she11sh0cked>

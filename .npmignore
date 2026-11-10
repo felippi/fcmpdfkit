@@ -19,6 +19,5 @@ index.html
 yarn.lock
 rollup.config.js
 eslint.config.mjs
-.eslintrc
 .idea/
 node_modules/
