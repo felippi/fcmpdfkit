@@ -13,13 +13,33 @@ doc.note(10, 10, 20, 20, 'nota', { contents: 'x' });
 // @ts-expect-error
 doc.formText('a', 10, 10, 100, 20, { maxLength: 10 });
 
+// Chave que não começa com letra maiúscula também é rejeitada
+// @ts-expect-error
+doc.annotate(10, 10, 20, 20, { _x: 1 });
+
+// AA só é lido junto com format
+// @ts-expect-error
+doc.formText('a', 10, 10, 100, 20, { AA: { Bl: {} } });
+
+// De MK só CA é copiado; BG é descartado (use backgroundColor)
+// @ts-expect-error
+doc.formPushButton('b', 10, 10, 100, 20, { MK: { BG: [1, 1, 0] } });
+
+// link de imagem é URL ou índice de página, não opções de anotação
+// @ts-expect-error
+doc.image('/a.png', { link: { Contents: 'x' } });
+
+// O LineWrapper usa o emitter mínimo do PDFKit, não o EventEmitter do Node
+// @ts-expect-error
+new PDFDocument.LineWrapper(doc, {}).removeAllListeners('line');
+
 // Formato de campo inválido
 // @ts-expect-error
 doc.formText('a', 10, 10, 100, 20, { format: { type: 'time', param: 5 } });
 
-// pageLayout fora dos valores aceitos
+// pageLayout fora dos valores aceitos (só a primeira letra pode mudar de caixa)
 // @ts-expect-error
-new PDFDocument({ pageLayout: 'TwoColumnLeft' });
+new PDFDocument({ pageLayout: 'twocolumnleft' });
 
 // usefulW é método, não propriedade
 // @ts-expect-error
@@ -29,7 +49,7 @@ const width: string = doc.usefulW();
 // @ts-expect-error
 PDFDocument.PAGE_SIZES;
 
-// registerStdFonts pode não existir (Node, standalone)
+// registerStdFonts pode não existir (builds de Node)
 // @ts-expect-error
 PDFDocument.registerStdFonts(undefined);
 

@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import PDFDocument, { LineWrapper, registerFile } from 'pdfkit';
-import { toBytes } from 'pdfkit/output';
+import PDFDocument, { LineWrapper, registerFile } from 'fcmpdfkit';
+import { toBytes } from 'fcmpdfkit/output';
 
 const require = createRequire(import.meta.url);
 const packageJson = require('../package.json');
 
 assert.equal(
-  import.meta.resolve('pdfkit'),
+  import.meta.resolve('fcmpdfkit'),
   new URL('../js/pdfkit.node.mjs', import.meta.url).href,
 );
 
@@ -16,8 +16,10 @@ assert.equal(typeof PDFDocument, 'function');
 assert.equal(PDFDocument.name, 'PDFDocument');
 assert.equal(typeof LineWrapper, 'function');
 assert.equal(typeof registerFile, 'function');
-assert.equal(PDFDocument.LineWrapper, undefined);
-assert.equal(PDFDocument.registerFile, undefined);
+// fcmpdfkit: the named exports are also static members of the default export
+assert.equal(PDFDocument.LineWrapper, LineWrapper);
+assert.equal(PDFDocument.registerFile, registerFile);
+assert.equal(PDFDocument.PDFDocument, PDFDocument);
 
 const loadedStandardFontModules = () =>
   Object.keys(require.cache).filter((file) =>

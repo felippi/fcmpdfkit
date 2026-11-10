@@ -4,16 +4,23 @@ Changes specific to the fork. The upstream PDFKit changelog follows below.
 
 ### Unreleased
 
+- The named exports `PDFDocument`, `LineWrapper` and `registerFile` (and `registerStdFonts` in the browser builds) are now also static members of the default export in every build, as they already were in the CommonJS build. `PDFDocument.registerFile()` works with `import PDFDocument from 'fcmpdfkit'` and in the standalone build. Upstream leaves them out of the default export in the ES builds
 - Type the APIs added in PDFKit 0.18–0.20.2 (#2):
-  - Named exports `PDFDocument`, `LineWrapper` and `registerFile`, typed as properties of the exported constructor, as in the CommonJS build. `import PDFDocument, { registerFile } from 'fcmpdfkit'` and `import PDFDocument = require('fcmpdfkit')` both work
-  - `registerStdFonts` is typed as optional: only the browser ES build exports it, so it is `undefined` in Node and in the standalone build
+  - Named exports `PDFDocument`, `LineWrapper` and `registerFile`, typed as static members of the exported constructor. `import PDFDocument, { registerFile } from 'fcmpdfkit'` and `import PDFDocument = require('fcmpdfkit')` both work
+  - `registerStdFonts` is typed as optional: only the browser builds have it, so it is `undefined` in Node
+  - `LineWrapper` exposes only `on`, `once`, `off` and `emit`: it extends PDFKit's minimal event emitter in every build, not Node's `EventEmitter`
   - `fcmpdfkit/output` (`toBlob`, `toBytes`) and `fcmpdfkit/standard-fonts/*`, declared under the `types` condition of each subpath in `exports` and in `typesVersions` for `moduleResolution: node10`
-  - `pageLayout` and `userUnit` options, `roundedRect` `borderRadius` as number or per-corner array, already-parsed fontkit fonts in `font()`/`registerFont()`, `Uint8Array`/`ArrayBuffer`/data URL sources in `image()` and `file()`, image `opacity`, outline items with `pageNumber`/`fit`/`top`/`left`/`zoom`, `bbox`/`placement`/`scope` on structure elements and `structParent` on annotations
-- Stricter option types for the 0.20 breaking changes: annotation options accept PDF key names only (a lowercase key such as `contents`, which 0.20 no longer uppercases, is a type error), and AcroForm options accept only the documented mappings plus the `Ff`, `MK` and `AA` escape hatches
+  - `pageLayout` (also with the first letter capitalized, as PDFKit accepts) and `userUnit` options, `link` as a page index in `text()` and `image()`, `roundedRect` `borderRadius` as number or per-corner array, already-parsed fontkit fonts in `font()`/`registerFont()`, `Uint8Array`/`ArrayBuffer`/data URL sources in `image()` and `file()`, image `opacity`, outline items with `pageNumber`/`fit`/`top`/`left`/`zoom`, `bbox`/`placement`/`scope` on structure elements and `structParent` on annotations
+- Stricter option types for the 0.20 breaking changes: annotation options accept PDF key names only (a lowercase key such as `contents`, which 0.20 no longer uppercases, is a type error), and AcroForm options accept only the documented mappings plus the `Ff`, `MK.CA` and `AA` escape hatches, `AA` only together with `format`, which is the only case PDFKit reads it
 - Fix annotation types: `Subtype` instead of `SubType`, `link()` accepts a page index, `fileAnnotation()` is declared and `file()` returns the file specification reference instead of the document
+- Fix image `link` and `goTo` types: a URL or page index and a destination name, not annotation options
+- Document a PDFKit bug in outline items: `left` is measured from the right edge of the page
+- The type definitions require TypeScript 4.4 or later
 - Remove the type declarations for `fcmpdfkit/js/*` paths, which `exports` does not expose
-- Fix `npm run generate-types`: it never matched the 2-space indented declarations and reported success without changing anything, and when it did match it duplicated the option interfaces and turned `usefulH()`/`usefulW()` into properties. It now rewrites only the block between the `fcm-mixin:generated` markers, keeps both as methods and exits with an error when the markers are missing
-- Add `npm run test:types`, which packs the package and type-checks consumers under `--strict` with `moduleResolution` `node10`, `node16`, `nodenext` and `bundler`
+- Fix `npm run generate-types`: it never matched the 2-space indented declarations and reported success without changing anything, and when it did match it duplicated the option interfaces and turned `usefulH()`/`usefulW()` into properties. It now rewrites only the block between the `fcm-mixin:generated` markers, keeps both as methods, formats the result with Prettier and exits with an error when the markers are missing
+- `npm run prettier` and `npm run format` also cover `types/`
+- Add `npm run test:types`, which packs the package and type-checks consumers under `--strict` with `moduleResolution` `node10`, `node16`, `nodenext` and `bundler`, in parallel and offline after the first run. `TS_VERSION` checks older compilers, skipping the modes they lack. It also fails when a standard font in `exports` has no `types` condition
+- `npm run test:package` runs against `fcmpdfkit` (it imported `pdfkit`, so it never ran in the fork)
 
 ### [v0.3.0]
 

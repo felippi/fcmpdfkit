@@ -7,6 +7,8 @@
 // Type definitions for FcmPdfkit v0.3.0 (fork of PDFKit 0.20.2)
 // Coverage: PDFKit API up to 0.20.2 plus the FCM mixin, including the
 // `fcmpdfkit/output` and `fcmpdfkit/standard-fonts/*` subpaths.
+// Requires TypeScript 4.4 or later (checked by `npm run test:types` with
+// TS_VERSION=4.4.4 TYPES_NODE_VERSION=16.11.7).
 // The members between the `fcm-mixin:generated` markers in `PDFFcm` are
 // generated from the JSDoc of lib/mixins/fcm.js by `npm run generate-types`.
 // Project: http://pdfkit.org
@@ -173,8 +175,9 @@ declare namespace FcmPDFKit.Mixins {
    *
    * Since PDFKit 0.20 the keys are written to the PDF annotation dictionary
    * exactly as given: they are no longer uppercased. Use the PDF key names
-   * (`Contents`, `Subtype`, `T`, `CA`...). Lowercase keys other than `color`
-   * and `structParent` are rejected, because PDFKit would silently ignore them.
+   * (`Contents`, `Subtype`, `T`, `CA`...). Keys that do not start with an
+   * uppercase ASCII letter, other than `color` and `structParent`, are
+   * rejected: PDFKit would write them as-is and PDF viewers ignore them.
    * `Type`, `Rect` and `Border` are always overwritten by `annotate()`.
    */
   interface AnnotationOption {
@@ -197,8 +200,42 @@ declare namespace FcmPDFKit.Mixins {
     FS?: PDFKitReference | undefined;
 
     /** Any other entry of the PDF annotation dictionary, by its PDF key name */
-    [key: Capitalize<string>]: unknown;
+    [key: `${PDFKeyInitial}${string}`]: unknown;
   }
+
+  /**
+   * First letter of a PDF dictionary key. A union of template literals keeps
+   * the annotation index signature valid since TypeScript 4.4 (an index on
+   * `Capitalize<string>` needs a much newer compiler) and also rejects keys
+   * such as `_x`.
+   */
+  type PDFKeyInitial =
+    | 'A'
+    | 'B'
+    | 'C'
+    | 'D'
+    | 'E'
+    | 'F'
+    | 'G'
+    | 'H'
+    | 'I'
+    | 'J'
+    | 'K'
+    | 'L'
+    | 'M'
+    | 'N'
+    | 'O'
+    | 'P'
+    | 'Q'
+    | 'R'
+    | 'S'
+    | 'T'
+    | 'U'
+    | 'V'
+    | 'W'
+    | 'X'
+    | 'Y'
+    | 'Z';
 
   /** The file embedded by `fileAnnotation()`: `src` plus the `file()` options */
   interface FileAnnotationFile extends PDFAttachmentOptions {
@@ -723,8 +760,10 @@ declare namespace FcmPDFKit.Mixins {
     cover?: [number, number] | undefined;
     align?: 'center' | 'right' | undefined;
     valign?: 'center' | 'bottom' | undefined;
-    link?: string | AnnotationOption | undefined;
-    goTo?: AnnotationOption | undefined;
+    /** URL to link the image to, or the 0-based index of an existing page */
+    link?: string | number | undefined;
+    /** Named destination to link the image to */
+    goTo?: string | undefined;
     destination?: string | undefined;
   }
 
@@ -878,7 +917,7 @@ declare namespace FcmPDFKit.Mixins {
     /** Whether to stroke the text */
     stroke?: boolean | undefined;
     /** A URL to link this text to (shortcut to create an annotation) */
-    link?: string | null | undefined;
+    link?: string | number | null | undefined;
     /** Whether to underline the text */
     underline?: boolean | undefined;
     /** Whether to strike out the text */
@@ -1043,13 +1082,13 @@ declare namespace FcmPDFKit.Mixins {
     | { type: 'percent'; nDec?: number; sepComma?: boolean };
 
   /**
-   * Options of `formField()` and the form annotation methods.
+   * Options of `formField()` and the form annotation methods, except `format`
+   * and `AA`, which only work together (see `FormFieldOptions`).
    *
    * Since PDFKit 0.20 only these documented options are mapped to the field
-   * dictionary; any other key is ignored, so it is rejected here. `Ff`, `MK`
-   * and `AA` are the escape hatches for raw PDF entries.
+   * dictionary; any other key is ignored, so it is rejected here.
    */
-  interface FormFieldOptions {
+  interface FormFieldBaseOptions {
     /** Parent field returned by `formField()` */
     parent?: PDFKitReference;
 
@@ -1074,7 +1113,6 @@ declare namespace FcmPDFKit.Mixins {
     select?: string[];
     /** Push button label */
     label?: string;
-    format?: FormFieldFormat;
     backgroundColor?: FormColorValue;
     borderColor?: FormColorValue;
     /** Font size of the field appearance (0, the default, means auto) */
@@ -1082,11 +1120,28 @@ declare namespace FcmPDFKit.Mixins {
 
     /** Raw field flags, combined with the boolean flags above */
     Ff?: number;
-    /** Raw appearance characteristics dictionary */
-    MK?: { CA?: string; [key: string]: unknown };
-    /** Raw additional-actions dictionary */
-    AA?: Record<string, unknown>;
+    /**
+     * Appearance characteristics. Only `CA` (the normal caption) is copied to
+     * the field: any other entry is dropped, so it is rejected here. Use
+     * `backgroundColor` and `borderColor` for `BG` and `BC`, and prefer
+     * `label` for the caption.
+     */
+    MK?: { CA?: string };
   }
+
+  /**
+   * Options of `formField()` and the form annotation methods.
+   *
+   * `AA` (the raw additional-actions dictionary) is only read together with
+   * `format`: it is the base of the dictionary whose `K` and `F` entries the
+   * format sets. Without `format` PDFKit ignores it, so `AA` without `format`
+   * is rejected here.
+   */
+  type FormFieldOptions = FormFieldBaseOptions &
+    (
+      | { format?: undefined; AA?: undefined }
+      | { format: FormFieldFormat; AA?: Record<string, unknown> }
+    );
 
   interface PDFAcroForm {
     /**
@@ -1311,6 +1366,14 @@ declare namespace FcmPDFKit {
     printing?: 'lowResolution' | 'highResolution' | undefined;
   }
 
+  type PageLayout =
+    | 'singlePage'
+    | 'oneColumn'
+    | 'twoColumnLeft'
+    | 'twoColumnRight'
+    | 'twoPageLeft'
+    | 'twoPageRight';
+
   interface PDFDocumentOptions {
     compress?: boolean | undefined;
     info?: DocumentInfo | undefined;
@@ -1331,14 +1394,11 @@ declare namespace FcmPDFKit {
     displayTitle?: boolean;
     subset?: Mixins.PDFSubsets;
     fontLayoutCache?: boolean;
-    /** How a PDF viewer lays out the pages (document option) */
-    pageLayout?:
-      | 'singlePage'
-      | 'oneColumn'
-      | 'twoColumnLeft'
-      | 'twoColumnRight'
-      | 'twoPageLeft'
-      | 'twoPageRight';
+    /**
+     * How a PDF viewer lays out the pages (document option). PDFKit
+     * capitalizes the first letter, so the PDF name (`TwoColumnLeft`) works too.
+     */
+    pageLayout?: PageLayout | Capitalize<PageLayout>;
     /**
      * Size of one user-space unit in multiples of 1/72 inch (default 1.0).
      * Page option: also accepted by `addPage()`. Scales the physical page size
@@ -1465,29 +1525,53 @@ declare namespace FcmPDFKit {
     ctime?: Date;
   }
 
-  /** Breaks text into lines for a document. Used internally by `text()`. */
-  interface LineWrapper extends NodeJS.EventEmitter {
+  type LineWrapperSectionEvent =
+    | 'sectionStart'
+    | 'sectionEnd'
+    | 'firstLine'
+    | 'lastLine'
+    | 'pageBreak'
+    | 'columnBreak';
+
+  type LineWrapperLineListener = (
+    line: string,
+    options: Mixins.TextOptions,
+    wrapper: LineWrapper,
+  ) => void;
+
+  type LineWrapperSectionListener = (
+    options: Mixins.TextOptions,
+    wrapper: LineWrapper,
+  ) => void;
+
+  /**
+   * Breaks text into lines for a document. Used internally by `text()`.
+   *
+   * It extends PDFKit's minimal event emitter (lib/event_emitter.js) in every
+   * build, not Node's `EventEmitter`: only `on`, `once`, `off` and `emit` exist.
+   */
+  interface LineWrapper {
     document: PDFDocument;
     wrap(text: string, options: Mixins.TextOptions): void;
+
+    on(event: 'line', listener: LineWrapperLineListener): this;
     on(
-      event: 'line',
-      listener: (
-        line: string,
-        options: Mixins.TextOptions,
-        wrapper: LineWrapper,
-      ) => void,
+      event: LineWrapperSectionEvent,
+      listener: LineWrapperSectionListener,
     ): this;
-    on(
-      event:
-        | 'sectionStart'
-        | 'sectionEnd'
-        | 'firstLine'
-        | 'lastLine'
-        | 'pageBreak'
-        | 'columnBreak',
-      listener: (options: Mixins.TextOptions, wrapper: LineWrapper) => void,
+    on(event: string, listener: (...args: any[]) => void): this;
+
+    once(event: 'line', listener: LineWrapperLineListener): this;
+    once(
+      event: LineWrapperSectionEvent,
+      listener: LineWrapperSectionListener,
     ): this;
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
+    once(event: string, listener: (...args: any[]) => void): this;
+
+    off(event: string, listener: (...args: any[]) => void): this;
+
+    /** Calls the listeners of `event`. Returns whether there was any. */
+    emit(event: string, ...args: any[]): boolean;
   }
 
   interface LineWrapperConstructor {
@@ -1496,12 +1580,13 @@ declare namespace FcmPDFKit {
 
   /**
    * The value exported by `fcmpdfkit`: the `PDFDocument` constructor, which
-   * also carries the named exports as properties.
+   * also carries the named exports as static members.
    *
-   * In CommonJS (`require('fcmpdfkit')`) the named exports really are
-   * properties of the constructor. In ES modules they are separate exports
-   * (`import PDFDocument, { registerFile } from 'fcmpdfkit'`), and reading
-   * them as properties of the default export yields `undefined`.
+   * In every build (CommonJS, Node ES, browser ES and standalone) the named
+   * exports are also properties of the constructor, so
+   * `import PDFDocument, { registerFile } from 'fcmpdfkit'`,
+   * `PDFDocument.registerFile` and `require('fcmpdfkit').registerFile` are the
+   * same function.
    */
   interface PDFDocumentModule extends PDFDocument {
     PDFDocument: PDFDocumentModule;
@@ -1520,9 +1605,9 @@ declare namespace FcmPDFKit {
      * Registers standard font metrics imported from
      * `fcmpdfkit/standard-fonts/*`.
      *
-     * Exported only by the browser ES build. The Node builds load the standard
-     * fonts by themselves and do not export it, and the standalone build
-     * already registers all 14, so it is `undefined` there.
+     * Only the browser builds (ES and standalone) have it; the standalone
+     * build already registers all 14. The Node builds load the standard fonts
+     * by themselves and do not have it, so it is `undefined` there.
      */
     registerStdFonts?: (...fontData: StandardFontData[]) => void;
   }
@@ -1636,9 +1721,16 @@ declare namespace FcmPDFKit {
      * otherwise an `XYZ` destination is used with `top`, `left` and `zoom`.
      */
     fit?: boolean;
-    /** Top position of the `XYZ` destination */
+    /** Distance from the top of the page of the `XYZ` destination (default 0) */
     top?: number;
-    /** Left position of the `XYZ` destination */
+    /**
+     * Left of the `XYZ` destination.
+     *
+     * Known PDFKit bug (still in upstream master): the destination's left is
+     * computed as `pageWidth - left`, so `left: 0` (also the default) scrolls to
+     * the right edge of the page. To land at a distance `d` from the left edge,
+     * pass `left: pageWidth - d`.
+     */
     left?: number;
     /** Zoom of the `XYZ` destination (0 keeps the current zoom) */
     zoom?: number;

@@ -34,9 +34,14 @@ new SameDocument();
 const wrapper = new LineWrapper(doc, { width: 200 });
 wrapper.on('line', (line: string) => line.length);
 wrapper.on('sectionEnd', (options) => options.width);
+const onLine = (line: string) => line.length;
+wrapper.once('line', onLine);
+wrapper.off('line', onLine);
+const hadListeners: boolean = wrapper.emit('firstLine', {}, wrapper);
 wrapper.wrap('texto', { width: 200 });
+new PDFDocument({ pageLayout: 'TwoPageRight' });
 
-// registerStdFonts só existe no build ES de browser
+// registerStdFonts só existe nos builds de browser
 PDFDocument.registerStdFonts?.(Helvetica);
 const fontName: FcmPDFKit.StandardFontName = Helvetica.name;
 
@@ -56,6 +61,9 @@ doc.image(new Uint8Array(8), 0, 0, { width: 50, opacity: 0.5 });
 doc.image(new ArrayBuffer(8), { x: 10, y: 20, fit: [50, 50] });
 doc.image('data:image/png;base64,iVBORw0KGgo=', { ignoreOrientation: true });
 doc.image(Buffer.from([1, 2, 3]));
+doc.image(new Uint8Array(8), { link: 'https://example.com' });
+doc.image(new Uint8Array(8), { link: 0, goTo: 'capitulo-1' });
+doc.text('ir para a página 1', { link: 0 });
 const filespec: FcmPDFKit.PDFKitReference = doc.file(
   'data:text/plain;base64,YQ==',
   {
@@ -136,7 +144,11 @@ doc.formPushButton('btn', 10, 160, 100, 30, {
   borderColor: [0, 0, 0],
   label: 'OK',
 });
-doc.formCheckbox('ok', 10, 200, 10, 10, { Ff: 0, MK: { CA: '8' }, AA: {} });
+doc.formCheckbox('ok', 10, 200, 10, 10, { Ff: 0, MK: { CA: '8' } });
+doc.formText('pct', 10, 230, 100, 20, {
+  format: { type: 'percent', nDec: 1 },
+  AA: { Bl: {} },
+});
 doc.formAnnotation('raw', 'radioButton', 10, 220, 10, 10, {
   toggleToOffButton: true,
 });
@@ -157,4 +169,13 @@ doc
 
 doc.end();
 
-export { bytes, blob, filespec, fontName, userUnit, usefulW, usefulH };
+export {
+  hadListeners,
+  bytes,
+  blob,
+  filespec,
+  fontName,
+  userUnit,
+  usefulW,
+  usefulH,
+};
