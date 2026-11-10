@@ -7,10 +7,23 @@
 
 const fs = require('fs');
 const path = require('path');
+const prettier = require('prettier');
 
 // Caminhos dos arquivos
 const FCM_JS_PATH = path.join(__dirname, '../lib/mixins/fcm.js');
 const TYPES_PATH = path.join(__dirname, '../types/fcmpdfkit/index.d.ts');
+
+// Delimitam, dentro de `interface PDFFcm`, o único trecho que este script reescreve
+const START_MARKER = '// <fcm-mixin:generated>';
+const END_MARKER = '// </fcm-mixin:generated>';
+// Indentação dos membros de PDFFcm (namespace + interface)
+const INDENT = '    ';
+
+// Parâmetros de opções tipados por interfaces escritas à mão no index.d.ts
+const OPTION_INTERFACES = {
+  startRect: { options: 'FCMStartRectOptions' },
+  drawRowLabelTexts: { itens: 'any[]', options: 'FCMDrawRowLabelTextsOptions' },
+};
 
 console.log('🔄 Iniciando atualização automática de tipos...');
 
@@ -20,8 +33,12 @@ console.log('🔄 Iniciando atualização automática de tipos...');
 function extractMethodsFromJSDoc(content) {
   const methods = [];
   
-  // Regex para capturar blocos JSDoc + métodos
-  const jsDocMethodRegex = /\/\*\*([\s\S]*?)\*\/\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{/g;
+  // Regex para capturar blocos JSDoc + métodos. O bloco não pode atravessar um
+  // `*/` (senão um JSDoc sem método logo abaixo engole o do método seguinte) e
+  // comentários de linha entre o JSDoc e o método são tolerados
+  // (ex.: `// eslint-disable-next-line`).
+  const jsDocMethodRegex =
+    /\/\*\*((?:(?!\*\/)[\s\S])*)\*\/\s*(?:\/\/[^\n]*\n\s*)*([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{/g;
   
   let match;
   while ((match = jsDocMethodRegex.exec(content)) !== null) {
@@ -99,139 +116,85 @@ function convertJSDocTypeToTS(jsDocType) {
 }
 
 /**
- * Gera definições TypeScript para os métodos
+ * Gera as definições TypeScript dos métodos públicos do mixin
  */
 function generateTypeDefinitions(methods) {
   let definitions = '';
-  
-  methods.forEach(method => {
-    // Pula métodos internos/privados
+
+  methods.forEach((method) => {
+    // Pula métodos internos (handlers de evento e inicialização)
     if (method.name.startsWith('on') || method.name === 'initFcm') {
       return;
     }
-    
-    // Adiciona comentário com descrição
+
     if (method.description) {
-      definitions += `        /** ${method.description} */\n`;
+      definitions += `${INDENT}/** ${method.description} */\n`;
     }
-    
-    // Detecta se é um getter (propriedade readonly)
-    const isGetter = method.name.startsWith('useful') && method.params.length === 0;
-    
-    if (isGetter) {
-      // Define como propriedade readonly
-      definitions += `        readonly ${method.name}: ${method.returnType.replace('this', 'number')};\n`;
-    } else {
-      // Gera lista de parâmetros com sintaxe correta para opcionais
-      const paramList = method.params.map(param => {
-        const optional = param.optional ? '?' : '';
-        return `${param.name}${optional}: ${param.type}`;
-      }).join(', ');
-      
-      // Adiciona definição do método
-      definitions += `        ${method.name}(${paramList}): ${method.returnType};\n`;
-    }
+
+    // Parâmetros aninhados do JSDoc (options.x) não viram parâmetros: as
+    // opções são tipadas pelas interfaces de OPTION_INTERFACES.
+    const paramList = method.params
+      .filter((param) => !param.name.includes('.'))
+      .map((param) => {
+        const type = OPTION_INTERFACES[method.name]?.[param.name] ?? param.type;
+        return `${param.name}${param.optional ? '?' : ''}: ${type}`;
+      })
+      .join(', ');
+
+    definitions += `${INDENT}${method.name}(${paramList}): ${method.returnType};\n`;
   });
-  
+
   return definitions;
 }
 
 /**
- * Atualiza o arquivo index.d.ts
+ * Substitui, no index.d.ts, o trecho entre os marcadores dentro de PDFFcm.
+ * O resto do arquivo (inclusive as interfaces de opções do mixin) é escrito à
+ * mão e nunca é tocado. O resultado passa pelo Prettier do projeto, que também
+ * checa types/ (`npm run prettier`).
  */
-function updateTypesFile(newDefinitions) {
-  let content = fs.readFileSync(TYPES_PATH, 'utf8');
-  
-  // Define interfaces para objetos complexos
-  const interfaceDefinitions = `
-    interface FCMStartRectOptions {
-        x?: number;
-        y?: number;
-        w?: number;
-        r?: number;
-        lineWidth?: number;
-        padding?: number;
-    }
+async function updateTypesFile(newDefinitions) {
+  const content = fs.readFileSync(TYPES_PATH, 'utf8');
+  const start = content.indexOf(START_MARKER);
+  const end = content.indexOf(END_MARKER);
 
-    interface FCMDrawRowLabelTextsOptions {
-        label?: {
-            font?: string;
-            size?: number;
-            h?: number;
-        };
-        text?: {
-            font?: string;
-            size?: number;
-            h?: number;
-        };
-        defaultItemW?: number;
-        padding?: number;
-        debug?: boolean;
-        x?: number;
-        y?: number;
-        w?: number;
-        noLabel?: boolean;
-        divider?: boolean;
-        box?: {
-            radius?: number;
-        };
-        itemBox?: {
-            radius?: number;
-            padding?: number;
-            active?: boolean;
-        };
-    }
-
-`;
-
-  // Substitui tipos complexos por interfaces
-  newDefinitions = newDefinitions
-    .replace(/startRect\([^)]+\): this;/, 'startRect(options?: FCMStartRectOptions): this;')
-    .replace(/drawRowLabelTexts\([^)]+\): this;/, 'drawRowLabelTexts(items: any[], options?: FCMDrawRowLabelTextsOptions): this;');
-  
-  // Encontra a interface PDFFcm e atualiza
-  const interfaceRegex = /(interface PDFFcm \{)([\s\S]*?)(\n    \})/;
-  
-  if (interfaceRegex.test(content)) {
-    // Adiciona as interfaces antes da interface PDFFcm
-    content = content.replace(/(interface PDFFcm)/, `${interfaceDefinitions}    $1`);
-    
-    // Atualiza o conteúdo da interface PDFFcm
-    content = content.replace(interfaceRegex, (match, start, oldContent, end) => {
-      return `${start}\n${newDefinitions}${end}`;
-    });
-    
-    fs.writeFileSync(TYPES_PATH, content, 'utf8');
-    console.log('✅ Arquivo index.d.ts atualizado com sucesso!');
-  } else {
-    console.error('❌ Interface PDFFcm não encontrada no arquivo index.d.ts');
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error(
+      `Marcadores "${START_MARKER}" e "${END_MARKER}" não encontrados em ${TYPES_PATH}`,
+    );
   }
+
+  const before = content.slice(0, start + START_MARKER.length);
+  const after = content.slice(content.lastIndexOf('\n', end) + 1);
+  const prettierOptions = await prettier.resolveConfig(TYPES_PATH);
+  const updated = await prettier.format(`${before}\n${newDefinitions}${after}`, {
+    ...prettierOptions,
+    filepath: TYPES_PATH,
+  });
+
+  if (updated === content) {
+    console.log('✅ index.d.ts já estava atualizado');
+    return;
+  }
+
+  fs.writeFileSync(TYPES_PATH, updated, 'utf8');
+  console.log('✅ index.d.ts atualizado');
 }
 
 /**
  * Função principal
  */
-function main() {
+async function main() {
   try {
-    // Lê o arquivo fcm.js
     const fcmContent = fs.readFileSync(FCM_JS_PATH, 'utf8');
-    
-    // Extrai métodos do JSDoc
     const methods = extractMethodsFromJSDoc(fcmContent);
-    
+
     console.log(`📝 Encontrados ${methods.length} métodos com JSDoc:`);
-    methods.forEach(method => {
+    methods.forEach((method) => {
       console.log(`   - ${method.name}(${method.params.length} parâmetros)`);
     });
-    
-    // Gera definições TypeScript
-    const typeDefinitions = generateTypeDefinitions(methods);
-    
-    // Atualiza arquivo de tipos
-    updateTypesFile(typeDefinitions);
-    
-    console.log('🎉 Tipos atualizados com sucesso!');
-    
+
+    await updateTypesFile(generateTypeDefinitions(methods));
   } catch (error) {
     console.error('❌ Erro durante a atualização:', error.message);
     process.exit(1);

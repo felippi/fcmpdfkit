@@ -64,10 +64,11 @@
     "publish-website": "node docs/publish_website.js",
     "docs": "npm run pdf-guide && npm run website && npm run browserify-example",
     "lint": "eslint {lib,tests,tools}/**/*.js",
-    "prettier": "prettier --check lib tests docs tools",
-    "format": "prettier --write lib tests docs tools",
+    "prettier": "prettier --check lib tests docs tools types",
+    "format": "prettier --write lib tests docs tools types",
     "test": "vitest --testTimeout 8000 run --exclude \"tests/tools/**\"",
     "test:package": "node tests/package-resolution.cjs && node tests/package-resolution.mjs",
+    "test:types": "node tests/types/run.mjs",
     "test:tools": "vitest --testTimeout 8000 run tests/tools",
     "test:visual": "vitest --testTimeout 8000 run tests/visual",
     "test:unit": "vitest run tests/unit",
@@ -76,6 +77,16 @@
   },
   "main": "js/pdfkit.js",
   "types": "types/fcmpdfkit/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "output": [
+        "types/fcmpdfkit/output.d.ts"
+      ],
+      "standard-fonts/*": [
+        "types/fcmpdfkit/standard-fonts.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./types/fcmpdfkit/index.d.ts",
@@ -88,62 +99,77 @@
     "./js/pdfkit.standalone": "./js/pdfkit.standalone.js",
     "./js/pdfkit.standalone.js": "./js/pdfkit.standalone.js",
     "./output": {
+      "types": "./types/fcmpdfkit/output.d.ts",
       "require": "./js/output.cjs",
       "default": "./js/output.mjs"
     },
     "./standard-fonts/Courier": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/Courier.cjs",
       "default": "./js/standard-fonts/Courier.mjs"
     },
     "./standard-fonts/CourierBold": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/CourierBold.cjs",
       "default": "./js/standard-fonts/CourierBold.mjs"
     },
     "./standard-fonts/CourierBoldOblique": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/CourierBoldOblique.cjs",
       "default": "./js/standard-fonts/CourierBoldOblique.mjs"
     },
     "./standard-fonts/CourierOblique": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/CourierOblique.cjs",
       "default": "./js/standard-fonts/CourierOblique.mjs"
     },
     "./standard-fonts/Helvetica": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/Helvetica.cjs",
       "default": "./js/standard-fonts/Helvetica.mjs"
     },
     "./standard-fonts/HelveticaBold": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/HelveticaBold.cjs",
       "default": "./js/standard-fonts/HelveticaBold.mjs"
     },
     "./standard-fonts/HelveticaBoldOblique": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/HelveticaBoldOblique.cjs",
       "default": "./js/standard-fonts/HelveticaBoldOblique.mjs"
     },
     "./standard-fonts/HelveticaOblique": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/HelveticaOblique.cjs",
       "default": "./js/standard-fonts/HelveticaOblique.mjs"
     },
     "./standard-fonts/Symbol": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/Symbol.cjs",
       "default": "./js/standard-fonts/Symbol.mjs"
     },
     "./standard-fonts/TimesBold": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/TimesBold.cjs",
       "default": "./js/standard-fonts/TimesBold.mjs"
     },
     "./standard-fonts/TimesBoldItalic": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/TimesBoldItalic.cjs",
       "default": "./js/standard-fonts/TimesBoldItalic.mjs"
     },
     "./standard-fonts/TimesItalic": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/TimesItalic.cjs",
       "default": "./js/standard-fonts/TimesItalic.mjs"
     },
     "./standard-fonts/TimesRoman": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/TimesRoman.cjs",
       "default": "./js/standard-fonts/TimesRoman.mjs"
     },
     "./standard-fonts/ZapfDingbats": {
+      "types": "./types/fcmpdfkit/standard-fonts.d.ts",
       "require": "./js/standard-fonts/ZapfDingbats.cjs",
       "default": "./js/standard-fonts/ZapfDingbats.mjs"
     },

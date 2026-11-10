@@ -1,10 +1,16 @@
 /// <reference types="node" />
+/// <reference path="./output.d.ts" />
+/// <reference path="./standard-fonts.d.ts" />
 
 // Changed by Felippi CM from https://www.npmjs.com/package/@types/pdfkit
 
 // Type definitions for FcmPdfkit v0.3.0 (fork of PDFKit 0.20.2)
-// Coverage: PDFKit API up to 0.17 plus the FCM mixin. The APIs added in PDFKit
-// 0.18–0.20.2 are not typed yet: https://github.com/felippi/fcmpdfkit/issues/2
+// Coverage: PDFKit API up to 0.20.2 plus the FCM mixin, including the
+// `fcmpdfkit/output` and `fcmpdfkit/standard-fonts/*` subpaths.
+// Requires TypeScript 4.4 or later (checked by `npm run test:types` with
+// TS_VERSION=4.4.4 TYPES_NODE_VERSION=16.11.7).
+// The members between the `fcm-mixin:generated` markers in `PDFFcm` are
+// generated from the JSDoc of lib/mixins/fcm.js by `npm run generate-types`.
 // Project: http://pdfkit.org
 // Definitions by: Eric Hillah <https://github.com/erichillah>
 //                 Erik Berreßem <https://github.com/she11sh0cked>
@@ -16,29 +22,44 @@
 //                 Robin Guinant <https://github.com/Foohx>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-
 declare namespace FcmPDFKit {
   interface PDFGradient {
-    new(document: any): PDFGradient;
-    stop(pos: number, color?: string | FcmPDFKit.PDFGradient, opacity?: number): PDFGradient;
+    new (document: any): PDFGradient;
+    stop(
+      pos: number,
+      color?: string | FcmPDFKit.PDFGradient,
+      opacity?: number,
+    ): PDFGradient;
     embed(): void;
     apply(): void;
   }
 
   interface PDFLinearGradient extends PDFGradient {
-    new(document: any, x1: number, y1: number, x2: number, y2: number): PDFLinearGradient;
+    new (
+      document: any,
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+    ): PDFLinearGradient;
     shader(fn: () => any): any;
     opacityGradient(): PDFLinearGradient;
   }
 
   interface PDFRadialGradient extends PDFGradient {
-    new(document: any, x1: number, y1: number, x2: number, y2: number): PDFRadialGradient;
+    new (
+      document: any,
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+    ): PDFRadialGradient;
     shader(fn: () => any): any;
     opacityGradient(): PDFRadialGradient;
   }
 
   interface PDFTilingPattern {
-    new(
+    new (
       document: any,
       bbox: FcmPDFKit.Mixins.BoundingBox,
       xStep: number,
@@ -49,51 +70,14 @@ declare namespace FcmPDFKit {
     embedPatternColorSpaces(): void;
     getPatternColorSpaceId(underlyingColorspace: string): string;
     embed(): void;
-    apply(stroke: boolean, patternColor: FcmPDFKit.Mixins.TilingPatternColorValue): FcmPDFKit.PDFDocument;
+    apply(
+      stroke: boolean,
+      patternColor: FcmPDFKit.Mixins.TilingPatternColorValue,
+    ): FcmPDFKit.PDFDocument;
   }
 }
 
 declare namespace FcmPDFKit.Mixins {
-
-  interface FCMStartRectOptions {
-    x?: number;
-    y?: number;
-    w?: number;
-    r?: number;
-    lineWidth?: number;
-    padding?: number;
-  }
-
-  interface FCMDrawRowLabelTextsOptions {
-    label?: {
-      font?: string;
-      size?: number;
-      h?: number;
-    };
-    text?: {
-      font?: string;
-      size?: number;
-      h?: number;
-    };
-    defaultItemW?: number;
-    padding?: number;
-    debug?: boolean;
-    x?: number;
-    y?: number;
-    w?: number;
-    noLabel?: boolean;
-    divider?: boolean;
-    box?: {
-      radius?: number;
-    };
-    itemBox?: {
-      radius?: number;
-      padding?: number;
-      active?: boolean;
-    };
-  }
-
-
   interface FCMStartRectOptions {
     x?: number;
     y?: number;
@@ -133,12 +117,25 @@ declare namespace FcmPDFKit.Mixins {
   }
 
   interface PDFFcm {
+    // <fcm-mixin:generated>
     /** Draws the top portion of a rounded rectangle with rounded top corners. */
     roundedRectUp(x: number, y: number, w: number, h: number, r?: number): this;
     /** Draws the middle portion of a rectangle with straight vertical sides. */
-    roundedRectMid(x: number, y: number, w: number, h: number, r?: number): this;
+    roundedRectMid(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r?: number,
+    ): this;
     /** Draws the bottom portion of a rounded rectangle with rounded bottom corners. */
-    roundedRectDown(x: number, y: number, w: number, h: number, r?: number): this;
+    roundedRectDown(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r?: number,
+    ): this;
     /** Draws a ruler with tick marks and measurements for development and debugging. */
     drawRuler(x?: number, y?: number): this;
     /** Increments the current X position by the specified amount. */
@@ -166,340 +163,503 @@ declare namespace FcmPDFKit.Mixins {
     /** Automatically adds a new page if the remaining usable space is less than the specified minimum. */
     tryAddPage(minSize: number): this;
     /** Draws a collection of items with labels and text in an automatic multi-line layout. */
-    drawRowLabelTexts(items: any[], options?: FCMDrawRowLabelTextsOptions): this;
-
+    drawRowLabelTexts(
+      itens: any[],
+      options?: FCMDrawRowLabelTextsOptions,
+    ): this;
+    // </fcm-mixin:generated>
   }
 
+  /**
+   * Options of `annotate()` and its convenience methods.
+   *
+   * Since PDFKit 0.20 the keys are written to the PDF annotation dictionary
+   * exactly as given: they are no longer uppercased. Use the PDF key names
+   * (`Contents`, `Subtype`, `T`, `CA`...). Keys that do not start with an
+   * uppercase ASCII letter, other than `color` and `structParent`, are
+   * rejected: PDFKit would write them as-is and PDF viewers ignore them.
+   * `Type`, `Rect` and `Border` are always overwritten by `annotate()`.
+   */
   interface AnnotationOption {
-    Type?: string | undefined;
-    Rect?: any;
-    Border?: number[] | undefined;
-    SubType?: string | undefined;
-    Contents?: string | undefined;
-    Name?: string | undefined;
-    color?: string | undefined;
-    QuadPoints?: number[] | undefined;
+    /** Annotation color, converted to the `C` entry (not applied to links) */
+    color?: ColorValue | undefined;
+    /** Structure element the annotation is added to, for tagged PDFs */
+    structParent?: PDFStructureElement | undefined;
 
+    Subtype?: string | undefined;
+    Contents?: string | String | undefined;
+    Name?: string | undefined;
+    /** Annotation flags */
+    F?: number | undefined;
+    Dest?: string | String | undefined;
+    C?: number[] | undefined;
+    QuadPoints?: number[] | undefined;
     A?: any;
-    B?: any;
-    C?: any;
-    L?: any;
-    DA?: string | undefined;
+    L?: number[] | undefined;
+    DA?: string | String | undefined;
+    FS?: PDFKitReference | undefined;
+
+    /** Any other entry of the PDF annotation dictionary, by its PDF key name */
+    [key: `${PDFKeyInitial}${string}`]: unknown;
+  }
+
+  /**
+   * First letter of a PDF dictionary key. A union of template literals keeps
+   * the annotation index signature valid since TypeScript 4.4 (an index on
+   * `Capitalize<string>` needs a much newer compiler) and also rejects keys
+   * such as `_x`.
+   */
+  type PDFKeyInitial =
+    | 'A'
+    | 'B'
+    | 'C'
+    | 'D'
+    | 'E'
+    | 'F'
+    | 'G'
+    | 'H'
+    | 'I'
+    | 'J'
+    | 'K'
+    | 'L'
+    | 'M'
+    | 'N'
+    | 'O'
+    | 'P'
+    | 'Q'
+    | 'R'
+    | 'S'
+    | 'T'
+    | 'U'
+    | 'V'
+    | 'W'
+    | 'X'
+    | 'Y'
+    | 'Z';
+
+  /** The file embedded by `fileAnnotation()`: `src` plus the `file()` options */
+  interface FileAnnotationFile extends PDFAttachmentOptions {
+    src: AttachmentSrc;
   }
 
   interface PDFAnnotation {
-    annotate(x: number, y: number, w: number, h: number, option: AnnotationOption): this;
-    note(x: number, y: number, w: number, h: number, content: string, option?: AnnotationOption): this;
-    goTo(x: number, y: number, w: number, h: number, name: string, options?: AnnotationOption): this;
-    link(x: number, y: number, w: number, h: number, url: string, option?: AnnotationOption): this;
-    highlight(x: number, y: number, w: number, h: number, option?: AnnotationOption): this;
-    underline(x: number, y: number, w: number, h: number, option?: AnnotationOption): this;
-    strike(x: number, y: number, w: number, h: number, option?: AnnotationOption): this;
-    lineAnnotation(x1: number, y1: number, x2: number, y2: number, option?: AnnotationOption): this;
-    rectAnnotation(x: number, y: number, w: number, h: number, option?: AnnotationOption): this;
-    ellipseAnnotation(x: number, y: number, w: number, h: number, option?: AnnotationOption): this;
-    textAnnotation(x: number, y: number, w: number, h: number, text: string, option?: AnnotationOption): this;
+    annotate(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option: AnnotationOption,
+    ): this;
+    note(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      content: string,
+      option?: AnnotationOption,
+    ): this;
+    goTo(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      name: string,
+      options?: AnnotationOption,
+    ): this;
+    /**
+     * Adds a link annotation. `url` is an external URL or, as a number, the
+     * 0-based index of a page that already exists in the document.
+     */
+    link(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      url: string | number,
+      option?: AnnotationOption,
+    ): this;
+    highlight(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option?: AnnotationOption,
+    ): this;
+    underline(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option?: AnnotationOption,
+    ): this;
+    strike(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option?: AnnotationOption,
+    ): this;
+    lineAnnotation(
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      option?: AnnotationOption,
+    ): this;
+    rectAnnotation(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option?: AnnotationOption,
+    ): this;
+    ellipseAnnotation(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      option?: AnnotationOption,
+    ): this;
+    textAnnotation(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      text: string,
+      option?: AnnotationOption,
+    ): this;
+    /** Embeds `file` as a hidden attachment and adds a file attachment annotation for it */
+    fileAnnotation(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      file: FileAnnotationFile,
+      option?: AnnotationOption,
+    ): this;
   }
 
+  /**
+   * Bytes to embed, or a string: a data URL (`data:<mime>;base64,...`), a path
+   * registered with `registerFile()` or, in Node only, a path on disk.
+   */
+  type AttachmentSrc = Uint8Array | ArrayBuffer | string;
+
   interface PDFAttachmentOptions {
+    /** File name shown in the PDF (defaults to `src`) */
     name?: string;
+    /** MIME type shown in the PDF */
     type?: string;
     description?: string;
+    /** Do not list the file in the EmbeddedFiles name tree (used by file annotations) */
     hidden?: boolean;
     creationDate?: Date;
     modifiedDate?: Date;
+    /** Relationship between the document and the file, for PDF/A-3 (default `Unspecified`) */
+    relationship?:
+      'Alternative' | 'Data' | 'Source' | 'Supplement' | 'Unspecified';
   }
 
   interface PDFAttachment {
     /**
-     * Embed content of `src` in PDF
+     * Embed content of `src` in PDF. Returns the file specification reference.
      */
-    file(src: Buffer | ArrayBuffer | string, options?: PDFAttachmentOptions): this;
+    file(src: AttachmentSrc, options?: PDFAttachmentOptions): PDFKitReference;
   }
 
   // The color forms accepted by FcmPDFKit:
   //     example:   "red"                  [R, G, B]                  [C, M, Y, K]
-  type ColorValue = string | PDFGradient | [PDFTilingPattern, TilingPatternColorValue] | [number, number, number] | [
-    number,
-    number,
-    number,
-    number,
-  ];
+  type ColorValue =
+    | string
+    | PDFGradient
+    | [PDFTilingPattern, TilingPatternColorValue]
+    | [number, number, number]
+    | [number, number, number, number];
 
   // The color forms accepted by FcmPDFKit Tiling Pattern:
   //     example:   "red"                  [R, G, B]                  [C, M, Y, K]
-  type TilingPatternColorValue = string | PDFGradient | [number, number, number] | [number, number, number, number];
+  type TilingPatternColorValue =
+    | string
+    | PDFGradient
+    | [number, number, number]
+    | [number, number, number, number];
 
   // The winding / filling rule accepted by FcmPDFKit:
-  type RuleValue = "even-odd" | "evenodd" | "non-zero" | "nonzero";
+  type RuleValue = 'even-odd' | 'evenodd' | 'non-zero' | 'nonzero';
 
   // Text option opentype features as listed at https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
   type OpenTypeFeatures =
-    | "aalt"
-    | "abvf"
-    | "abvm"
-    | "abvs"
-    | "afrc"
-    | "akhn"
-    | "blwf"
-    | "blwm"
-    | "blws"
-    | "calt"
-    | "case"
-    | "cfar"
-    | "cjct"
-    | "clig"
-    | "cpct"
-    | "cpsp"
-    | "cswh"
-    | "curs"
-    | "cv01"
-    | "cv02"
-    | "cv03"
-    | "cv04"
-    | "cv05"
-    | "cv06"
-    | "cv07"
-    | "cv08"
-    | "cv09"
-    | "cv10"
-    | "cv11"
-    | "cv12"
-    | "cv13"
-    | "cv14"
-    | "cv15"
-    | "cv16"
-    | "cv17"
-    | "cv18"
-    | "cv19"
-    | "cv20"
-    | "cv21"
-    | "cv22"
-    | "cv23"
-    | "cv24"
-    | "cv25"
-    | "cv26"
-    | "cv27"
-    | "cv28"
-    | "cv29"
-    | "cv30"
-    | "cv31"
-    | "cv32"
-    | "cv33"
-    | "cv34"
-    | "cv35"
-    | "cv36"
-    | "cv37"
-    | "cv38"
-    | "cv39"
-    | "cv40"
-    | "cv41"
-    | "cv42"
-    | "cv43"
-    | "cv44"
-    | "cv45"
-    | "cv46"
-    | "cv47"
-    | "cv48"
-    | "cv49"
-    | "cv50"
-    | "cv51"
-    | "cv52"
-    | "cv53"
-    | "cv54"
-    | "cv55"
-    | "cv56"
-    | "cv57"
-    | "cv58"
-    | "cv59"
-    | "cv60"
-    | "cv61"
-    | "cv62"
-    | "cv63"
-    | "cv64"
-    | "cv65"
-    | "cv66"
-    | "cv67"
-    | "cv68"
-    | "cv69"
-    | "cv70"
-    | "cv71"
-    | "cv72"
-    | "cv73"
-    | "cv74"
-    | "cv75"
-    | "cv76"
-    | "cv77"
-    | "cv78"
-    | "cv79"
-    | "cv80"
-    | "cv81"
-    | "cv82"
-    | "cv83"
-    | "cv84"
-    | "cv85"
-    | "cv86"
-    | "cv87"
-    | "cv88"
-    | "cv89"
-    | "cv90"
-    | "cv91"
-    | "cv92"
-    | "cv93"
-    | "cv94"
-    | "cv95"
-    | "cv96"
-    | "cv97"
-    | "cv98"
-    | "cv99"
-    | "c2pc"
-    | "c2sc"
-    | "dist"
-    | "ccmp"
-    | "dlig"
-    | "dnom"
-    | "dtls"
-    | "expt"
-    | "falt"
-    | "fin2"
-    | "fin3"
-    | "fina"
-    | "flac"
-    | "frac"
-    | "fwid"
-    | "half"
-    | "haln"
-    | "halt"
-    | "hist"
-    | "hkna"
-    | "hlig"
-    | "hngl"
-    | "hojo"
-    | "hwid"
-    | "init"
-    | "isol"
-    | "ital"
-    | "jalt"
-    | "jp78"
-    | "jp83"
-    | "jp90"
-    | "jp04"
-    | "kern"
-    | "lfbd"
-    | "liga"
-    | "ljmo"
-    | "lnum"
-    | "locl"
-    | "ltra"
-    | "ltrm"
-    | "mark"
-    | "med2"
-    | "medi"
-    | "mgrk"
-    | "mkmk"
-    | "mset"
-    | "nalt"
-    | "nlck"
-    | "nukt"
-    | "numr"
-    | "onum"
-    | "opbd"
-    | "ordn"
-    | "ornm"
-    | "palt"
-    | "pcap"
-    | "pkna"
-    | "pnum"
-    | "pref"
-    | "pres"
-    | "pstf"
-    | "psts"
-    | "pwid"
-    | "qwid"
-    | "rand"
-    | "rclt"
-    | "rkrf"
-    | "rlig"
-    | "rphf"
-    | "rtbd"
-    | "rtla"
-    | "rtlm"
-    | "ruby"
-    | "rvrn"
-    | "salt"
-    | "sinf"
-    | "size"
-    | "smcp"
-    | "smpl"
-    | "ss01"
-    | "ss02"
-    | "ss03"
-    | "ss04"
-    | "ss05"
-    | "ss06"
-    | "ss07"
-    | "ss08"
-    | "ss09"
-    | "ss10"
-    | "ss11"
-    | "ss12"
-    | "ss13"
-    | "ss14"
-    | "ss15"
-    | "ss16"
-    | "ss17"
-    | "ss18"
-    | "ss19"
-    | "ss20"
-    | "ssty"
-    | "stch"
-    | "subs"
-    | "sups"
-    | "swsh"
-    | "titl"
-    | "tjmo"
-    | "tnam"
-    | "tnum"
-    | "trad"
-    | "twid"
-    | "unic"
-    | "valt"
-    | "vatu"
-    | "vert"
-    | "vhal"
-    | "vjmo"
-    | "vkna"
-    | "vkrn"
-    | "vpal"
-    | "vrt2"
-    | "vrtr"
-    | "zero";
+    | 'aalt'
+    | 'abvf'
+    | 'abvm'
+    | 'abvs'
+    | 'afrc'
+    | 'akhn'
+    | 'blwf'
+    | 'blwm'
+    | 'blws'
+    | 'calt'
+    | 'case'
+    | 'cfar'
+    | 'cjct'
+    | 'clig'
+    | 'cpct'
+    | 'cpsp'
+    | 'cswh'
+    | 'curs'
+    | 'cv01'
+    | 'cv02'
+    | 'cv03'
+    | 'cv04'
+    | 'cv05'
+    | 'cv06'
+    | 'cv07'
+    | 'cv08'
+    | 'cv09'
+    | 'cv10'
+    | 'cv11'
+    | 'cv12'
+    | 'cv13'
+    | 'cv14'
+    | 'cv15'
+    | 'cv16'
+    | 'cv17'
+    | 'cv18'
+    | 'cv19'
+    | 'cv20'
+    | 'cv21'
+    | 'cv22'
+    | 'cv23'
+    | 'cv24'
+    | 'cv25'
+    | 'cv26'
+    | 'cv27'
+    | 'cv28'
+    | 'cv29'
+    | 'cv30'
+    | 'cv31'
+    | 'cv32'
+    | 'cv33'
+    | 'cv34'
+    | 'cv35'
+    | 'cv36'
+    | 'cv37'
+    | 'cv38'
+    | 'cv39'
+    | 'cv40'
+    | 'cv41'
+    | 'cv42'
+    | 'cv43'
+    | 'cv44'
+    | 'cv45'
+    | 'cv46'
+    | 'cv47'
+    | 'cv48'
+    | 'cv49'
+    | 'cv50'
+    | 'cv51'
+    | 'cv52'
+    | 'cv53'
+    | 'cv54'
+    | 'cv55'
+    | 'cv56'
+    | 'cv57'
+    | 'cv58'
+    | 'cv59'
+    | 'cv60'
+    | 'cv61'
+    | 'cv62'
+    | 'cv63'
+    | 'cv64'
+    | 'cv65'
+    | 'cv66'
+    | 'cv67'
+    | 'cv68'
+    | 'cv69'
+    | 'cv70'
+    | 'cv71'
+    | 'cv72'
+    | 'cv73'
+    | 'cv74'
+    | 'cv75'
+    | 'cv76'
+    | 'cv77'
+    | 'cv78'
+    | 'cv79'
+    | 'cv80'
+    | 'cv81'
+    | 'cv82'
+    | 'cv83'
+    | 'cv84'
+    | 'cv85'
+    | 'cv86'
+    | 'cv87'
+    | 'cv88'
+    | 'cv89'
+    | 'cv90'
+    | 'cv91'
+    | 'cv92'
+    | 'cv93'
+    | 'cv94'
+    | 'cv95'
+    | 'cv96'
+    | 'cv97'
+    | 'cv98'
+    | 'cv99'
+    | 'c2pc'
+    | 'c2sc'
+    | 'dist'
+    | 'ccmp'
+    | 'dlig'
+    | 'dnom'
+    | 'dtls'
+    | 'expt'
+    | 'falt'
+    | 'fin2'
+    | 'fin3'
+    | 'fina'
+    | 'flac'
+    | 'frac'
+    | 'fwid'
+    | 'half'
+    | 'haln'
+    | 'halt'
+    | 'hist'
+    | 'hkna'
+    | 'hlig'
+    | 'hngl'
+    | 'hojo'
+    | 'hwid'
+    | 'init'
+    | 'isol'
+    | 'ital'
+    | 'jalt'
+    | 'jp78'
+    | 'jp83'
+    | 'jp90'
+    | 'jp04'
+    | 'kern'
+    | 'lfbd'
+    | 'liga'
+    | 'ljmo'
+    | 'lnum'
+    | 'locl'
+    | 'ltra'
+    | 'ltrm'
+    | 'mark'
+    | 'med2'
+    | 'medi'
+    | 'mgrk'
+    | 'mkmk'
+    | 'mset'
+    | 'nalt'
+    | 'nlck'
+    | 'nukt'
+    | 'numr'
+    | 'onum'
+    | 'opbd'
+    | 'ordn'
+    | 'ornm'
+    | 'palt'
+    | 'pcap'
+    | 'pkna'
+    | 'pnum'
+    | 'pref'
+    | 'pres'
+    | 'pstf'
+    | 'psts'
+    | 'pwid'
+    | 'qwid'
+    | 'rand'
+    | 'rclt'
+    | 'rkrf'
+    | 'rlig'
+    | 'rphf'
+    | 'rtbd'
+    | 'rtla'
+    | 'rtlm'
+    | 'ruby'
+    | 'rvrn'
+    | 'salt'
+    | 'sinf'
+    | 'size'
+    | 'smcp'
+    | 'smpl'
+    | 'ss01'
+    | 'ss02'
+    | 'ss03'
+    | 'ss04'
+    | 'ss05'
+    | 'ss06'
+    | 'ss07'
+    | 'ss08'
+    | 'ss09'
+    | 'ss10'
+    | 'ss11'
+    | 'ss12'
+    | 'ss13'
+    | 'ss14'
+    | 'ss15'
+    | 'ss16'
+    | 'ss17'
+    | 'ss18'
+    | 'ss19'
+    | 'ss20'
+    | 'ssty'
+    | 'stch'
+    | 'subs'
+    | 'sups'
+    | 'swsh'
+    | 'titl'
+    | 'tjmo'
+    | 'tnam'
+    | 'tnum'
+    | 'trad'
+    | 'twid'
+    | 'unic'
+    | 'valt'
+    | 'vatu'
+    | 'vert'
+    | 'vhal'
+    | 'vjmo'
+    | 'vkna'
+    | 'vkrn'
+    | 'vpal'
+    | 'vrt2'
+    | 'vrtr'
+    | 'zero';
 
   type BoundingBox = [number, number, number, number];
 
   type SizeUnits =
-    | "em"
-    | "in"
-    | "px"
-    | "cm"
-    | "mm"
-    | "pc"
-    | "ex"
-    | "ch"
-    | "rem"
-    | "vw"
-    | "vmin"
-    | "vmax"
-    | "%"
-    | "pt";
+    | 'em'
+    | 'in'
+    | 'px'
+    | 'cm'
+    | 'mm'
+    | 'pc'
+    | 'ex'
+    | 'ch'
+    | 'rem'
+    | 'vw'
+    | 'vmin'
+    | 'vmax'
+    | '%'
+    | 'pt';
 
   type Size = number | `${number}` | `${number}${SizeUnits}`;
 
   type Wideness = Size | boolean;
 
-  type Sides<T> = T | [T, T] | [T, T, T, T] | SlightlyExpandedSides<T> | ExpandedSides<T>;
+  type Sides<T> =
+    T | [T, T] | [T, T, T, T] | SlightlyExpandedSides<T> | ExpandedSides<T>;
 
-  type PartialSides<T> = T | [T, T] | [T, T, T, T] | Partial<SlightlyExpandedSides<T>> | Partial<ExpandedSides<T>>;
+  type PartialSides<T> =
+    | T
+    | [T, T]
+    | [T, T, T, T]
+    | Partial<SlightlyExpandedSides<T>>
+    | Partial<ExpandedSides<T>>;
 
   interface SlightlyExpandedSides<T> {
     vertical: T;
@@ -519,18 +679,52 @@ declare namespace FcmPDFKit.Mixins {
     opacity(opacity: number): this;
     fillOpacity(opacity: number): this;
     strokeOpacity(opacity: number): this;
-    linearGradient(x1: number, y1: number, x2: number, y2: number): PDFLinearGradient;
-    radialGradient(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): PDFRadialGradient;
-    pattern(bbox: BoundingBox, xStep: number, yStep: number, stream: string): PDFTilingPattern;
+    linearGradient(
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+    ): PDFLinearGradient;
+    radialGradient(
+      x1: number,
+      y1: number,
+      r1: number,
+      x2: number,
+      y2: number,
+      r2: number,
+    ): PDFRadialGradient;
+    pattern(
+      bbox: BoundingBox,
+      xStep: number,
+      yStep: number,
+      stream: string,
+    ): PDFTilingPattern;
   }
 
-  type PDFFontSource = string | Buffer | Uint8Array | ArrayBuffer;
+  /**
+   * An already-parsed fontkit `Font` (for example from `fontkit.create()`).
+   * Typed structurally so `@types/fontkit` is not required.
+   */
+  interface FontkitFont {
+    layout(...args: any[]): any;
+  }
+
+  /**
+   * A standard font name, a font file path (or a path registered with
+   * `registerFile()`), the font bytes or an already-parsed fontkit font.
+   */
+  type PDFFontSource = string | Uint8Array | ArrayBuffer | FontkitFont;
 
   interface PDFFont {
     font(src: PDFFontSource, size?: number): this;
     font(src: PDFFontSource, family: string, size?: number): this;
     fontSize(size: number): this;
-    sizeToPoint(size: Size, defaultValue?: number, page?: PDFPage, percentageWidth?: number): number;
+    sizeToPoint(
+      size: Size,
+      defaultValue?: number,
+      page?: PDFPage,
+      percentageWidth?: number,
+    ): number;
     currentLineHeight(includeGap?: boolean): number;
     /** Helpful method to give a font an alias, eg: `registerFont('bold', './Roboto.ttf')` */
     registerFont(
@@ -541,9 +735,22 @@ declare namespace FcmPDFKit.Mixins {
     ): this;
   }
 
-  type ImageSrc = Buffer | ArrayBuffer | string;
+  /**
+   * Image bytes (`Buffer` is a `Uint8Array`), or a string: a data URL
+   * (`data:<mime>;base64,...`), a path registered with `registerFile()` or, in
+   * Node only, a path on disk.
+   */
+  type ImageSrc = Uint8Array | ArrayBuffer | string;
 
   interface ImageOption {
+    /** X position, used when `x` is not passed as an argument */
+    x?: number | undefined;
+    /** Y position, used when `y` is not passed as an argument */
+    y?: number | undefined;
+    /** Image opacity, from 0 to 1 */
+    opacity?: number | undefined;
+    /** Ignore the JPEG EXIF orientation (defaults to the document option) */
+    ignoreOrientation?: boolean | undefined;
     width?: number | undefined;
     height?: number | undefined;
     /** Scale percentage */
@@ -551,10 +758,12 @@ declare namespace FcmPDFKit.Mixins {
     /** Two elements array specifying dimensions(w,h)  */
     fit?: [number, number] | undefined;
     cover?: [number, number] | undefined;
-    align?: "center" | "right" | undefined;
-    valign?: "center" | "bottom" | undefined;
-    link?: string | AnnotationOption | undefined;
-    goTo?: AnnotationOption | undefined;
+    align?: 'center' | 'right' | undefined;
+    valign?: 'center' | 'bottom' | undefined;
+    /** URL to link the image to, or the 0-based index of an existing page */
+    link?: string | number | undefined;
+    /** Named destination to link the image to */
+    goTo?: string | undefined;
     destination?: string | undefined;
   }
 
@@ -584,7 +793,7 @@ declare namespace FcmPDFKit.Mixins {
     /** The padding for the cell (default 0.25em) */
     padding?: Sides<Wideness>;
     /** The alignment of the cell text (default {x: 'left', y: 'top'}) */
-    align?: "center" | ExpandedAlign;
+    align?: 'center' | ExpandedAlign;
     /** Sets any text options you wish to provide (such as rotation) */
     textOptions?: TextOptions;
     /** Whether to show the debug lines for the cell (default false) */
@@ -603,11 +812,18 @@ declare namespace FcmPDFKit.Mixins {
       | ColumnStyle
       | ((row: number) => number | ColumnStyle | undefined);
     /** Row definitions of the table. (default *) */
-    rowStyles?: number | Array<number | string> | RowStyle | ((row: number) => number | RowStyle | undefined);
+    rowStyles?:
+      | number
+      | Array<number | string>
+      | RowStyle
+      | ((row: number) => number | RowStyle | undefined);
     /** Defaults to apply to every cell */
-    defaultStyle?:
-      & (number | Array<number | string> | CellStyle | ((row: number) => number | CellStyle | undefined))
-      & { width?: number };
+    defaultStyle?: (
+      | number
+      | Array<number | string>
+      | CellStyle
+      | ((row: number) => number | CellStyle | undefined)
+    ) & { width?: number };
     /** Whether to show the debug lines for all the cells (default false) */
     debug?: boolean;
   }
@@ -618,8 +834,8 @@ declare namespace FcmPDFKit.Mixins {
   }
 
   interface ExpandedAlign {
-    x?: "left" | "center" | "right" | "justify";
-    y?: "top" | "center" | "bottom";
+    x?: 'left' | 'center' | 'right' | 'justify';
+    y?: 'top' | 'center' | 'bottom';
   }
 
   interface CellOptions extends CellStyle {
@@ -632,7 +848,7 @@ declare namespace FcmPDFKit.Mixins {
     /** Font options for the cell */
     font?: { src?: PDFFontSource; family?: string; size?: number };
     /** Sets the cell type (for accessibility) (default TD) */
-    type?: "TD" | "TH";
+    type?: 'TD' | 'TH';
   }
 
   interface ColumnStyle extends CellStyle {
@@ -701,7 +917,7 @@ declare namespace FcmPDFKit.Mixins {
     /** Whether to stroke the text */
     stroke?: boolean | undefined;
     /** A URL to link this text to (shortcut to create an annotation) */
-    link?: string | null | undefined;
+    link?: string | number | null | undefined;
     /** Whether to underline the text */
     underline?: boolean | undefined;
     /** Whether to strike out the text */
@@ -711,24 +927,24 @@ declare namespace FcmPDFKit.Mixins {
     /** Whether to slant the text (angle in degrees or true) */
     oblique?: boolean | number | undefined;
     /** The alignment of the text (center, justify, left, right) */
-    align?: "center" | "justify" | "left" | "right" | undefined;
+    align?: 'center' | 'justify' | 'left' | 'right' | undefined;
     /** The vertical alignment of the text with respect to its insertion point */
     baseline?:
       | number
-      | "svg-middle"
-      | "middle"
-      | "svg-central"
-      | "bottom"
-      | "ideographic"
-      | "alphabetic"
-      | "mathematical"
-      | "hanging"
-      | "top"
+      | 'svg-middle'
+      | 'middle'
+      | 'svg-central'
+      | 'bottom'
+      | 'ideographic'
+      | 'alphabetic'
+      | 'mathematical'
+      | 'hanging'
+      | 'top'
       | undefined;
     /** An array of OpenType feature tags to apply. If not provided, a set of defaults is used. */
     features?: OpenTypeFeatures[] | undefined;
     /** Sets a list as unordered, ordered or lettered */
-    listType?: "bullet" | "numbered" | "lettered" | undefined;
+    listType?: 'bullet' | 'numbered' | 'lettered' | undefined;
     /** The radius of bullet points in a list. Works only with listType: 'bullet' */
     bulletRadius?: number | undefined;
     /** The indent of bullet points in a list */
@@ -760,9 +976,19 @@ declare namespace FcmPDFKit.Mixins {
     text(text: string, options?: TextOptions): this;
     widthOfString(text: string, options?: TextOptions): number;
     heightOfString(text: string, options?: TextOptions): number;
-    boundsOfString(text: string, x?: number, y?: number, options?: TextOptions): TextBounds;
+    boundsOfString(
+      text: string,
+      x?: number,
+      y?: number,
+      options?: TextOptions,
+    ): TextBounds;
     boundsOfString(text: string, options?: TextOptions): TextBounds;
-    list(list: Array<string | any>, x?: number, y?: number, options?: TextOptions): this;
+    list(
+      list: Array<string | any>,
+      x?: number,
+      y?: number,
+      options?: TextOptions,
+    ): this;
     list(list: Array<string | any>, options?: TextOptions): this;
   }
 
@@ -778,10 +1004,28 @@ declare namespace FcmPDFKit.Mixins {
     undash(): this;
     moveTo(x: number, y: number): this;
     lineTo(x: number, y: number): this;
-    bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): this;
+    bezierCurveTo(
+      cp1x: number,
+      cp1y: number,
+      cp2x: number,
+      cp2y: number,
+      x: number,
+      y: number,
+    ): this;
     quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): this;
     rect(x: number, y: number, w: number, h: number): this;
-    roundedRect(x: number, y: number, w: number, h: number, r?: number): this;
+    /**
+     * Rectangle with rounded corners. `borderRadius` is one radius for every
+     * corner or per-corner radii in CSS order: top-left, top-right,
+     * bottom-right, bottom-left. Missing entries are 0.
+     */
+    roundedRect(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      borderRadius?: number | number[],
+    ): this;
     ellipse(x: number, y: number, r1: number, r2?: number): this;
     circle(x: number, y: number, radius: number): this;
     polygon(...points: number[][]): this;
@@ -789,15 +1033,115 @@ declare namespace FcmPDFKit.Mixins {
     fill(color?: ColorValue, rule?: RuleValue): this;
     fill(rule: RuleValue): this;
     stroke(color?: ColorValue): this;
-    fillAndStroke(fillColor?: ColorValue, strokeColor?: ColorValue, rule?: RuleValue): this;
+    fillAndStroke(
+      fillColor?: ColorValue,
+      strokeColor?: ColorValue,
+      rule?: RuleValue,
+    ): this;
     fillAndStroke(fillColor: ColorValue, rule?: RuleValue): this;
     fillAndStroke(rule: RuleValue): this;
     clip(rule?: RuleValue): this;
-    transform(m11: number, m12: number, m21: number, m22: number, dx: number, dy: number): this;
+    transform(
+      m11: number,
+      m12: number,
+      m21: number,
+      m22: number,
+      dx: number,
+      dy: number,
+    ): this;
     translate(x: number, y: number): this;
     rotate(angle: number, options?: { origin?: number[] | undefined }): this;
-    scale(xFactor: number, yFactor?: number, options?: { origin?: number[] | undefined }): this;
+    scale(
+      xFactor: number,
+      yFactor?: number,
+      options?: { origin?: number[] | undefined },
+    ): this;
   }
+
+  type FormColorValue =
+    string | [number, number, number] | [number, number, number, number];
+
+  type FormAnnotationType =
+    'text' | 'pushButton' | 'radioButton' | 'checkbox' | 'combo' | 'list';
+
+  /** Text field formatting: Acrobat's AF* JavaScript format and keystroke actions */
+  type FormFieldFormat =
+    | { type: 'zip' | 'zipPlus4' | 'zip4' | 'phone' | 'ssn' }
+    /** `param` is the display format, e.g. `'mmmm d, yyyy'` */
+    | { type: 'date'; param: string }
+    /** `param` 0–3: "14:30", "2:30 PM", "14:30:15", "2:30:15 PM" */
+    | { type: 'time'; param: 0 | 1 | 2 | 3 }
+    | {
+        type: 'number';
+        nDec?: number;
+        sepComma?: boolean;
+        negStyle?: 'MinusBlack' | 'Red' | 'ParensBlack' | 'ParensRed';
+        currency?: string;
+        currencyPrepend?: boolean;
+      }
+    | { type: 'percent'; nDec?: number; sepComma?: boolean };
+
+  /**
+   * Options of `formField()` and the form annotation methods, except `format`
+   * and `AA`, which only work together (see `FormFieldOptions`).
+   *
+   * Since PDFKit 0.20 only these documented options are mapped to the field
+   * dictionary; any other key is ignored, so it is rejected here.
+   */
+  interface FormFieldBaseOptions {
+    /** Parent field returned by `formField()` */
+    parent?: PDFKitReference;
+
+    readOnly?: boolean;
+    required?: boolean;
+    noExport?: boolean;
+    multiline?: boolean;
+    password?: boolean;
+    toggleToOffButton?: boolean;
+    radioButton?: boolean;
+    pushButton?: boolean;
+    combo?: boolean;
+    edit?: boolean;
+    sort?: boolean;
+    multiSelect?: boolean;
+    noSpell?: boolean;
+
+    value?: string | number | null;
+    defaultValue?: string | number | null;
+    align?: 'left' | 'center' | 'right';
+    /** Choices of a combo or list field */
+    select?: string[];
+    /** Push button label */
+    label?: string;
+    backgroundColor?: FormColorValue;
+    borderColor?: FormColorValue;
+    /** Font size of the field appearance (0, the default, means auto) */
+    fontSize?: number;
+
+    /** Raw field flags, combined with the boolean flags above */
+    Ff?: number;
+    /**
+     * Appearance characteristics. Only `CA` (the normal caption) is copied to
+     * the field: any other entry is dropped, so it is rejected here. Use
+     * `backgroundColor` and `borderColor` for `BG` and `BC`, and prefer
+     * `label` for the caption.
+     */
+    MK?: { CA?: string };
+  }
+
+  /**
+   * Options of `formField()` and the form annotation methods.
+   *
+   * `AA` (the raw additional-actions dictionary) is only read together with
+   * `format`: it is the base of the dictionary whose `K` and `F` entries the
+   * format sets. Without `format` PDFKit ignores it, so `AA` without `format`
+   * is rejected here.
+   */
+  type FormFieldOptions = FormFieldBaseOptions &
+    (
+      | { format?: undefined; AA?: undefined }
+      | { format: FormFieldFormat; AA?: Record<string, unknown> }
+    );
 
   interface PDFAcroForm {
     /**
@@ -818,7 +1162,7 @@ declare namespace FcmPDFKit.Mixins {
      * @param name - field name (T attribute in field dictionary)
      * @param options - other attributes to include in the field dictionary
      */
-    formField(name: string, options?: Record<string, any>): PDFKitReference;
+    formField(name: string, options?: FormFieldOptions): PDFKitReference;
 
     /**
      * Creates and adds a Form Annotation to the document. Form annotations are
@@ -826,14 +1170,64 @@ declare namespace FcmPDFKit.Mixins {
      * @param name - form field name (T attribute of widget annotation
      * dictionary)
      */
-    formAnnotation(name: string, type: string, x: number, y: number, w: number, h: number, options?: object): this;
+    formAnnotation(
+      name: string,
+      type: FormAnnotationType | null,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
 
-    formText(name: string, x: number, y: number, w: number, h: number, options?: object): this;
-    formPushButton(name: string, x: number, y: number, w: number, h: number, options?: object): this;
-    formCombo(name: string, x: number, y: number, w: number, h: number, options?: object): this;
-    formList(name: string, x: number, y: number, w: number, h: number, options?: object): this;
-    formRadioButton(name: string, x: number, y: number, w: number, h: number, options?: object): this;
-    formCheckbox(name: string, x: number, y: number, w: number, h: number, options?: object): this;
+    formText(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
+    formPushButton(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
+    formCombo(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
+    formList(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
+    formRadioButton(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
+    formCheckbox(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      options?: FormFieldOptions,
+    ): this;
   }
 
   interface PDFMarking {
@@ -848,14 +1242,17 @@ declare namespace FcmPDFKit.Mixins {
     initMarkings(options?: { tagged?: boolean }): void;
     initPageMarkings(pageMarkings: PageMarking[]): void;
     endPageMarkings(page: PDFPage): PageMarking[];
-    markStructureContent(tag: string, options?: MarkingOptions): PDFStructureContent;
+    markStructureContent(
+      tag: string,
+      options?: MarkingOptions,
+    ): PDFStructureContent;
     getMarkingsDictionary(): PDFKitReference;
     getStructTreeRoot(): PDFKitReference;
     createStructParentTreeNextKey(): number;
     endMarkings(): void;
   }
   interface MarkingOptions {
-    type?: "Pagination" | "Layout" | "Page";
+    type?: 'Pagination' | 'Layout' | 'Page';
     bbox?: [number, number, number, number];
     attached?: string[];
     lang?: string;
@@ -869,6 +1266,15 @@ declare namespace FcmPDFKit.Mixins {
     alt?: string;
     expanded?: string;
     actual?: string;
+    /**
+     * Bounding box of the element's content in PDFKit coordinates
+     * `[left, top, right, bottom]`. Required for `Figure` elements in PDF/UA.
+     */
+    bbox?: [number, number, number, number];
+    /** Layout placement (`Block` is the default when `bbox` is set) */
+    placement?: 'Block' | 'Inline';
+    /** Scope of a `TH` table header cell */
+    scope?: 'Row' | 'Column' | 'Both';
   }
   interface PageMarking {
     tag: string;
@@ -884,7 +1290,10 @@ declare namespace FcmPDFKit.Mixins {
     endMetadata(): void;
   }
 
-  type PDFSubsets = `PDF/A-1${"" | "a" | "b"}` | `PDF/A-2${"" | "a" | "b"}` | `PDF/A-3${"" | "a" | "b"}`;
+  type PDFSubsets =
+    | `PDF/A-1${'' | 'a' | 'b'}`
+    | `PDF/A-2${'' | 'a' | 'b'}`
+    | `PDF/A-3${'' | 'a' | 'b'}`;
   interface PDFSubset {
     // TODO: Add more types if needed. I do not understand this enought...
     initSubset(options: { subset: PDFSubsets }): void;
@@ -906,7 +1315,7 @@ declare namespace FcmPDFKit {
    * FcmPDFKit data
    */
   interface PDFData {
-    new(data: any[]): PDFData;
+    new (data: any[]): PDFData;
     readByte(): any;
     writeByte(byte: any): void;
     byteAt(index: number): any;
@@ -935,11 +1344,6 @@ declare namespace FcmPDFKit {
   }
 }
 
-declare module "fcmpdfkit/js/data" {
-  var PDFKitData: FcmPDFKit.PDFData;
-  export = PDFKitData;
-}
-
 declare namespace FcmPDFKit {
   interface DocumentInfo {
     Producer?: string;
@@ -959,8 +1363,16 @@ declare namespace FcmPDFKit {
     fillingForms?: boolean | undefined;
     contentAccessibility?: boolean | undefined;
     documentAssembly?: boolean | undefined;
-    printing?: "lowResolution" | "highResolution" | undefined;
+    printing?: 'lowResolution' | 'highResolution' | undefined;
   }
+
+  type PageLayout =
+    | 'singlePage'
+    | 'oneColumn'
+    | 'twoColumnLeft'
+    | 'twoColumnRight'
+    | 'twoPageLeft'
+    | 'twoPageRight';
 
   interface PDFDocumentOptions {
     compress?: boolean | undefined;
@@ -968,12 +1380,12 @@ declare namespace FcmPDFKit {
     userPassword?: string | undefined;
     ownerPassword?: string | undefined;
     permissions?: DocumentPermissions | undefined;
-    pdfVersion?: "1.3" | "1.4" | "1.5" | "1.6" | "1.7" | "1.7ext3" | undefined;
+    pdfVersion?: '1.3' | '1.4' | '1.5' | '1.6' | '1.7' | '1.7ext3' | undefined;
     autoFirstPage?: boolean | undefined;
     size?: number[] | string | undefined;
     margin?: FcmPDFKit.Mixins.Size | undefined;
     margins?: FcmPDFKit.Mixins.ExpandedSides<FcmPDFKit.Mixins.Size> | undefined;
-    layout?: "portrait" | "landscape" | undefined;
+    layout?: 'portrait' | 'landscape' | undefined;
     font?: string | undefined;
 
     bufferPages?: boolean | undefined;
@@ -982,6 +1394,17 @@ declare namespace FcmPDFKit {
     displayTitle?: boolean;
     subset?: Mixins.PDFSubsets;
     fontLayoutCache?: boolean;
+    /**
+     * How a PDF viewer lays out the pages (document option). PDFKit
+     * capitalizes the first letter, so the PDF name (`TwoColumnLeft`) works too.
+     */
+    pageLayout?: PageLayout | Capitalize<PageLayout>;
+    /**
+     * Size of one user-space unit in multiples of 1/72 inch (default 1.0).
+     * Page option: also accepted by `addPage()`. Scales the physical page size
+     * without changing the coordinate system.
+     */
+    userUnit?: number;
   }
 
   interface PDFDocument
@@ -1001,8 +1424,7 @@ declare namespace FcmPDFKit {
       Mixins.PDFMetadata,
       Mixins.PDFSubset,
       Mixins.PDFOutline,
-      Mixins.PDFFcm
-  {
+      Mixins.PDFFcm {
     /**
      * PDF Version
      */
@@ -1029,7 +1451,7 @@ declare namespace FcmPDFKit {
 
     noPageBreak: boolean;
 
-    new(options?: PDFDocumentOptions): PDFDocument;
+    new (options?: PDFDocumentOptions): PDFDocument;
 
     addPage(options?: PDFDocumentOptions): PDFDocument;
     continueOnNewPage(options?: PDFDocumentOptions): PDFDocument;
@@ -1040,16 +1462,23 @@ declare namespace FcmPDFKit {
     // See https://opensource.adobe.com/dc-acrobat-sdk-docs/library/pdfmark/pdfmark_Actions.html#view-destinations.
     // If `fitType` is missing, this method wll be invoked with (name, 'XYZ', null, null, null).
     addNamedDestination(name: string): void;
-    addNamedDestination(name: string, fitType: "Fit"): void;
-    addNamedDestination(name: string, fitType: "FitB"): void;
-    addNamedDestination(name: string, fitType: "FitBH", top: number): void;
-    addNamedDestination(name: string, fitType: "FitBV", left: number): void;
-    addNamedDestination(name: string, fitType: "FitH", top: number): void;
-    addNamedDestination(name: string, fitType: "FitR", x1: number, y1: number, x2: number, y2: number): void;
-    addNamedDestination(name: string, fitType: "FitV", left: number): void;
+    addNamedDestination(name: string, fitType: 'Fit'): void;
+    addNamedDestination(name: string, fitType: 'FitB'): void;
+    addNamedDestination(name: string, fitType: 'FitBH', top: number): void;
+    addNamedDestination(name: string, fitType: 'FitBV', left: number): void;
+    addNamedDestination(name: string, fitType: 'FitH', top: number): void;
     addNamedDestination(
       name: string,
-      fitType: "XYZ",
+      fitType: 'FitR',
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+    ): void;
+    addNamedDestination(name: string, fitType: 'FitV', left: number): void;
+    addNamedDestination(
+      name: string,
+      fitType: 'XYZ',
       left: number | null,
       top: number | null,
       zoom: number | null,
@@ -1066,27 +1495,127 @@ declare namespace FcmPDFKit {
   }
 }
 
-declare module "fcmpdfkit" {
-  var doc: FcmPDFKit.PDFDocument;
-  export = doc;
+declare namespace FcmPDFKit {
+  type StandardFontName =
+    | 'Courier'
+    | 'Courier-Bold'
+    | 'Courier-BoldOblique'
+    | 'Courier-Oblique'
+    | 'Helvetica'
+    | 'Helvetica-Bold'
+    | 'Helvetica-BoldOblique'
+    | 'Helvetica-Oblique'
+    | 'Symbol'
+    | 'Times-Bold'
+    | 'Times-BoldItalic'
+    | 'Times-Italic'
+    | 'Times-Roman'
+    | 'ZapfDingbats';
+
+  /** Metrics of a standard font, the default export of `fcmpdfkit/standard-fonts/*` */
+  interface StandardFontData {
+    readonly name: StandardFontName;
+    readonly [key: string]: unknown;
+  }
+
+  interface RegisterFileOptions {
+    /** Creation date reported for the file (defaults to the registration time) */
+    birthtime?: Date;
+    /** Change date reported for the file (defaults to the registration time) */
+    ctime?: Date;
+  }
+
+  type LineWrapperSectionEvent =
+    | 'sectionStart'
+    | 'sectionEnd'
+    | 'firstLine'
+    | 'lastLine'
+    | 'pageBreak'
+    | 'columnBreak';
+
+  type LineWrapperLineListener = (
+    line: string,
+    options: Mixins.TextOptions,
+    wrapper: LineWrapper,
+  ) => void;
+
+  type LineWrapperSectionListener = (
+    options: Mixins.TextOptions,
+    wrapper: LineWrapper,
+  ) => void;
+
+  /**
+   * Breaks text into lines for a document. Used internally by `text()`.
+   *
+   * It extends PDFKit's minimal event emitter (lib/event_emitter.js) in every
+   * build, not Node's `EventEmitter`: only `on`, `once`, `off` and `emit` exist.
+   */
+  interface LineWrapper {
+    document: PDFDocument;
+    wrap(text: string, options: Mixins.TextOptions): void;
+
+    on(event: 'line', listener: LineWrapperLineListener): this;
+    on(
+      event: LineWrapperSectionEvent,
+      listener: LineWrapperSectionListener,
+    ): this;
+    on(event: string, listener: (...args: any[]) => void): this;
+
+    once(event: 'line', listener: LineWrapperLineListener): this;
+    once(
+      event: LineWrapperSectionEvent,
+      listener: LineWrapperSectionListener,
+    ): this;
+    once(event: string, listener: (...args: any[]) => void): this;
+
+    off(event: string, listener: (...args: any[]) => void): this;
+
+    /** Calls the listeners of `event`. Returns whether there was any. */
+    emit(event: string, ...args: any[]): boolean;
+  }
+
+  interface LineWrapperConstructor {
+    new (document: PDFDocument, options: Mixins.TextOptions): LineWrapper;
+  }
+
+  /**
+   * The value exported by `fcmpdfkit`: the `PDFDocument` constructor, which
+   * also carries the named exports as static members.
+   *
+   * In every build (CommonJS, Node ES, browser ES and standalone) the named
+   * exports are also properties of the constructor, so
+   * `import PDFDocument, { registerFile } from 'fcmpdfkit'`,
+   * `PDFDocument.registerFile` and `require('fcmpdfkit').registerFile` are the
+   * same function.
+   */
+  interface PDFDocumentModule extends PDFDocument {
+    PDFDocument: PDFDocumentModule;
+    LineWrapper: LineWrapperConstructor;
+    /**
+     * Registers in-memory file data under `path`, globally, so `image()`,
+     * `file()`, `font()` and `registerFont()` can read it by path in Node and
+     * browsers. Passing `undefined` as `data` unregisters the path.
+     */
+    registerFile(
+      path: string,
+      data: Uint8Array | undefined,
+      options?: RegisterFileOptions,
+    ): void;
+    /**
+     * Registers standard font metrics imported from
+     * `fcmpdfkit/standard-fonts/*`.
+     *
+     * Only the browser builds (ES and standalone) have it; the standalone
+     * build already registers all 14. The Node builds load the standard fonts
+     * by themselves and do not have it, so it is `undefined` there.
+     */
+    registerStdFonts?: (...fontData: StandardFontData[]) => void;
+  }
 }
 
-declare module "fcmpdfkit/js/gradient" {
-  var gradient: {
-    PDFGradient: FcmPDFKit.PDFGradient;
-    PDFLinearGradient: FcmPDFKit.PDFLinearGradient;
-    PDFRadialGradiant: FcmPDFKit.PDFRadialGradient;
-  };
-
-  export = gradient;
-}
-
-declare module "fcmpdfkit/js/pattern" {
-  var pattern: {
-    PDFTilingPattern: FcmPDFKit.PDFTilingPattern;
-  };
-
-  export = pattern;
+declare module 'fcmpdfkit' {
+  const PDFDocument: FcmPDFKit.PDFDocumentModule;
+  export = PDFDocument;
 }
 
 declare namespace FcmPDFKit {
@@ -1099,6 +1628,8 @@ declare namespace FcmPDFKit {
     margins: FcmPDFKit.Mixins.ExpandedSides<number>;
     width: number;
     height: number;
+    /** Size of one user-space unit in multiples of 1/72 inch */
+    userUnit: number;
     document: PDFDocument;
     content: PDFKitReference;
 
@@ -1119,12 +1650,6 @@ declare namespace FcmPDFKit {
   }
 }
 
-declare module "fcmpdfkit/js/page" {
-  var PDFKitPage: FcmPDFKit.PDFPage;
-
-  export = PDFKitPage;
-}
-
 declare namespace FcmPDFKit {
   /** PDFReference - represents a reference to another object in the PDF object hierarchy */
   class PDFKitReference {
@@ -1134,7 +1659,13 @@ declare namespace FcmPDFKit {
     compress: boolean;
     uncompressedLength: number;
     chunks: any[];
-    data: { Font?: any; XObject?: any; ExtGState?: any; Pattern: any; Annots: any };
+    data: {
+      Font?: any;
+      XObject?: any;
+      ExtGState?: any;
+      Pattern: any;
+      Annots: any;
+    };
     document: PDFDocument;
 
     constructor(document: PDFDocument, id: number, data: {});
@@ -1146,11 +1677,6 @@ declare namespace FcmPDFKit {
   }
 }
 
-declare module "fcmpdfkit/js/reference" {
-  var PDFKitReference: FcmPDFKit.PDFKitReference;
-
-  export = PDFKitReference;
-}
 declare namespace FcmPDFKit {
   /** PDFStructureContent */
   class PDFStructureContent {
@@ -1159,23 +1685,16 @@ declare namespace FcmPDFKit {
   }
 }
 
-declare module "fcmpdfkit/js/structure_content" {
-  var PDFStructureContent: FcmPDFKit.PDFStructureContent;
-  export = PDFStructureContent;
-}
-
 declare namespace FcmPDFKit {
   type PDFStructureElementChild =
-    | (() => any)
-    | PDFStructureElement
-    | PDFStructureContent;
+    (() => any) | PDFStructureElement | PDFStructureContent;
 
   /** PDFStructureElement */
   class PDFStructureElement {
     constructor(
       document: PDFDocument,
       type: string,
-      options?: { title?: string; lang?: string; alt?: string; expanded?: string; actual?: string },
+      options?: Mixins.StructureElementOptions,
       children?: PDFStructureElementChild | PDFStructureElementChild[],
     );
     constructor(
@@ -1191,63 +1710,39 @@ declare namespace FcmPDFKit {
 }
 
 declare namespace FcmPDFKit {
+  interface PDFOutlineItemOptions {
+    /** Show the item's children by default */
+    expanded?: boolean;
+    /** 0-based index of the target page; `null` or absent means the current page */
+    pageNumber?: number | null;
+    /**
+     * Use a `Fit` destination (whole page). Without options the item uses
+     * `Fit`; once an options object is passed, `fit` must be `true` to keep it,
+     * otherwise an `XYZ` destination is used with `top`, `left` and `zoom`.
+     */
+    fit?: boolean;
+    /** Distance from the top of the page of the `XYZ` destination (default 0) */
+    top?: number;
+    /**
+     * Left of the `XYZ` destination.
+     *
+     * Known PDFKit bug (still in upstream master): the destination's left is
+     * computed as `pageWidth - left`, so `left: 0` (also the default) scrolls to
+     * the right edge of the page. To land at a distance `d` from the left edge,
+     * pass `left: pageWidth - d`.
+     */
+    left?: number;
+    /** Zoom of the `XYZ` destination (0 keeps the current zoom) */
+    zoom?: number;
+  }
+
   /**
-   * FcmPDFKit data
+   * An item of the document outline (bookmarks)
    */
   interface PDFOutline {
     document: PDFDocument;
     children: PDFOutline[];
-    addItem(title: string, options?: { expanded?: boolean }): PDFOutline;
+    addItem(title: string, options?: PDFOutlineItemOptions): PDFOutline;
     endOutline(): void;
   }
-}
-
-declare module "fcmpdfkit/js/structure_element" {
-  var PDFStructureElement: FcmPDFKit.PDFStructureElement;
-  export = PDFStructureElement;
-}
-
-declare module "fcmpdfkit/js/mixins/annotations" {
-  var PDFKitAnnotation: FcmPDFKit.Mixins.PDFAnnotation;
-  export = PDFKitAnnotation;
-}
-
-declare module "fcmpdfkit/js/mixins/color" {
-  var PDFKitColor: FcmPDFKit.Mixins.PDFColor;
-  export = PDFKitColor;
-}
-
-declare module "fcmpdfkit/js/mixins/fonts" {
-  var PDFKitFont: FcmPDFKit.Mixins.PDFFont;
-  export = PDFKitFont;
-}
-
-declare module "fcmpdfkit/js/mixins/images" {
-  var PDFKitImage: FcmPDFKit.Mixins.PDFImage;
-  export = PDFKitImage;
-}
-
-declare module "fcmpdfkit/js/mixins/table" {
-  var PDFKitTable: FcmPDFKit.Mixins.PDFTable;
-  export = PDFKitTable;
-}
-
-declare module "fcmpdfkit/js/mixins/text" {
-  var PDFKitText: FcmPDFKit.Mixins.PDFText;
-  export = PDFKitText;
-}
-
-declare module "fcmpdfkit/js/mixins/vector" {
-  var PDFKitVector: FcmPDFKit.Mixins.PDFVector;
-  export = PDFKitVector;
-}
-
-declare module "fcmpdfkit/js/mixins/markings" {
-  var PDFKitMarking: FcmPDFKit.Mixins.PDFMarking;
-  export = PDFKitMarking;
-}
-
-declare module "fcmpdfkit/js/mixins/outline" {
-  var PDFKitOutline: FcmPDFKit.Mixins.PDFOutline;
-  export = PDFKitOutline;
 }
