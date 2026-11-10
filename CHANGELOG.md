@@ -2,6 +2,19 @@
 
 Changes specific to the fork. The upstream PDFKit changelog follows below.
 
+### Unreleased
+
+- Type the APIs added in PDFKit 0.18–0.20.2 (#2):
+  - Named exports `PDFDocument`, `LineWrapper` and `registerFile`, typed as properties of the exported constructor, as in the CommonJS build. `import PDFDocument, { registerFile } from 'fcmpdfkit'` and `import PDFDocument = require('fcmpdfkit')` both work
+  - `registerStdFonts` is typed as optional: only the browser ES build exports it, so it is `undefined` in Node and in the standalone build
+  - `fcmpdfkit/output` (`toBlob`, `toBytes`) and `fcmpdfkit/standard-fonts/*`, declared under the `types` condition of each subpath in `exports` and in `typesVersions` for `moduleResolution: node10`
+  - `pageLayout` and `userUnit` options, `roundedRect` `borderRadius` as number or per-corner array, already-parsed fontkit fonts in `font()`/`registerFont()`, `Uint8Array`/`ArrayBuffer`/data URL sources in `image()` and `file()`, image `opacity`, outline items with `pageNumber`/`fit`/`top`/`left`/`zoom`, `bbox`/`placement`/`scope` on structure elements and `structParent` on annotations
+- Stricter option types for the 0.20 breaking changes: annotation options accept PDF key names only (a lowercase key such as `contents`, which 0.20 no longer uppercases, is a type error), and AcroForm options accept only the documented mappings plus the `Ff`, `MK` and `AA` escape hatches
+- Fix annotation types: `Subtype` instead of `SubType`, `link()` accepts a page index, `fileAnnotation()` is declared and `file()` returns the file specification reference instead of the document
+- Remove the type declarations for `fcmpdfkit/js/*` paths, which `exports` does not expose
+- Fix `npm run generate-types`: it never matched the 2-space indented declarations and reported success without changing anything, and when it did match it duplicated the option interfaces and turned `usefulH()`/`usefulW()` into properties. It now rewrites only the block between the `fcm-mixin:generated` markers, keeps both as methods and exits with an error when the markers are missing
+- Add `npm run test:types`, which packs the package and type-checks consumers under `--strict` with `moduleResolution` `node10`, `node16`, `nodenext` and `bundler`
+
 ### [v0.3.0]
 
 - Sync with PDFKit 0.20.2 (previously 0.17.2). All upstream changes listed below from v0.18.0 to v0.20.2 apply, including its breaking changes
