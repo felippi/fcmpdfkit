@@ -1,3 +1,18 @@
+## fcmpdfkit changelog
+
+Changes specific to the fork. The upstream PDFKit changelog follows below.
+
+### [v0.3.0]
+
+- Sync with PDFKit 0.20.2 (previously 0.17.2). All upstream changes listed below from v0.18.0 to v0.20.2 apply, including its breaking changes
+- `startRect` registers its page listeners with `on()` instead of `addListener()`, which the browser build no longer provides
+- `exports` exposes `./js/pdfkit.standalone` (and `.js`), so `import 'fcmpdfkit/js/pdfkit.standalone'` keeps resolving under webpack 5 and other bundlers that honor `exports`. Any other deep import into `fcmpdfkit/js/...` is now blocked
+- `npm run build` builds `js/pdfkit.standalone.js` again, which upstream left out of `build`
+- The published package includes `types/fcmpdfkit`, and `exports['.']` declares it under the `types` condition
+- The type definitions still describe the API up to PDFKit 0.17; the APIs added in 0.18–0.20.2 are not typed yet (#2)
+- Browser: PNG images are now decompressed in a Web Worker created from a `blob:` URL. A Content Security Policy must allow `worker-src blob:` (or `script-src blob:` when `worker-src` is absent)
+- Node: the standard fonts are loaded from `js/standard-fonts` next to `js/pdfkit.js` on first use. Mark `fcmpdfkit` as external if the application is bundled
+
 ## pdfkit changelog
 
 ### Unreleased
