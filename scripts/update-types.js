@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const prettier = require('prettier');
 
 // Caminhos dos arquivos
 const FCM_JS_PATH = path.join(__dirname, '../lib/mixins/fcm.js');
@@ -149,9 +150,10 @@ function generateTypeDefinitions(methods) {
 /**
  * Substitui, no index.d.ts, o trecho entre os marcadores dentro de PDFFcm.
  * O resto do arquivo (inclusive as interfaces de opções do mixin) é escrito à
- * mão e nunca é tocado.
+ * mão e nunca é tocado. O resultado passa pelo Prettier do projeto, que também
+ * checa types/ (`npm run prettier`).
  */
-function updateTypesFile(newDefinitions) {
+async function updateTypesFile(newDefinitions) {
   const content = fs.readFileSync(TYPES_PATH, 'utf8');
   const start = content.indexOf(START_MARKER);
   const end = content.indexOf(END_MARKER);
@@ -164,7 +166,11 @@ function updateTypesFile(newDefinitions) {
 
   const before = content.slice(0, start + START_MARKER.length);
   const after = content.slice(content.lastIndexOf('\n', end) + 1);
-  const updated = `${before}\n${newDefinitions}${after}`;
+  const prettierOptions = await prettier.resolveConfig(TYPES_PATH);
+  const updated = await prettier.format(`${before}\n${newDefinitions}${after}`, {
+    ...prettierOptions,
+    filepath: TYPES_PATH,
+  });
 
   if (updated === content) {
     console.log('✅ index.d.ts já estava atualizado');
@@ -178,7 +184,7 @@ function updateTypesFile(newDefinitions) {
 /**
  * Função principal
  */
-function main() {
+async function main() {
   try {
     const fcmContent = fs.readFileSync(FCM_JS_PATH, 'utf8');
     const methods = extractMethodsFromJSDoc(fcmContent);
@@ -188,7 +194,7 @@ function main() {
       console.log(`   - ${method.name}(${method.params.length} parâmetros)`);
     });
 
-    updateTypesFile(generateTypeDefinitions(methods));
+    await updateTypesFile(generateTypeDefinitions(methods));
   } catch (error) {
     console.error('❌ Erro durante a atualização:', error.message);
     process.exit(1);
