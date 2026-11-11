@@ -111,6 +111,36 @@ const pathMaxY = (content) => {
   return max;
 };
 
+/**
+ * Vertical extent of each border stroked by the extensions (a `q`, line
+ * width, path, `S`, `Q` block), keyed by line width.
+ */
+const borderExtents = (content) => {
+  const extents = {};
+  for (const [, lineWidth, path] of content.matchAll(
+    /q\n([\d.]+) w\n([\s\S]*?)\nS\nQ/g,
+  )) {
+    const ys = [];
+    let operands = [];
+    for (const token of path.split(/\s+/)) {
+      if (/^-?[\d.]+$/.test(token)) {
+        operands.push(Number(token));
+        continue;
+      }
+      if (token === 'm' || token === 'l') ys.push(operands[1]);
+      if (token === 'c') ys.push(operands[1], operands[3], operands[5]);
+      operands = [];
+    }
+    const extent = (extents[lineWidth] ??= {
+      top: Infinity,
+      bottom: -Infinity,
+    });
+    extent.top = Math.min(extent.top, ...ys);
+    extent.bottom = Math.max(extent.bottom, ...ys);
+  }
+  return extents;
+};
+
 const longText = (lines) =>
   Array.from(
     { length: lines },
@@ -474,6 +504,67 @@ describe('FCM extensions', () => {
         8,
         3,
       );
+    });
+
+    test('nested borders stay apart across the pages of a flowing item', () => {
+      const doc = newDocument();
+      doc.startRect({ lineWidth: 0.7 });
+      doc.drawRowLabelTexts([{ label: 'Observações', text: longText(120) }], {
+        padding: 5,
+        box: {},
+        itemBox: { active: true, padding: 2 },
+      });
+      doc.stopRect();
+      const pages = doc._pageBuffer;
+      expect(pages.length).toBeGreaterThanOrEqual(3);
+      const first = borderExtents(pageContent(pages[0]));
+      const middle = borderExtents(pageContent(pages[1]));
+      // Bottom of the first page and top of a continuation page:
+      // caller rectangle (0.7) outside the box (0.3) outside the item box (0.1)
+      expect(first['0.7'].bottom - first['0.3'].bottom).toBeCloseTo(5, 3);
+      expect(first['0.3'].bottom - first['0.1'].bottom).toBeCloseTo(5, 3);
+      expect(middle['0.3'].top - middle['0.7'].top).toBeCloseTo(5, 3);
+      expect(middle['0.1'].top - middle['0.3'].top).toBeCloseTo(5, 3);
+      expect(middle['0.7'].top).toBe(doc.page.margins.top);
+      expect(middle['0.7'].bottom).toBeLessThanOrEqual(pages[1].maxY());
+    });
+
+    test('page listeners see the real page limits while an item flows', () => {
+      const doc = newDocument();
+      const seen = [];
+      const record = () =>
+        seen.push({
+          bottom: doc.page.margins.bottom,
+          maxY: doc.page.maxY(),
+        });
+      doc.on('beforePageAdded', record);
+      doc.on('pageAdded', record);
+      doc.drawRowLabelTexts([{ label: 'Observações', text: longText(120) }], {
+        box: {},
+        itemBox: { active: true, padding: 4 },
+      });
+      expect(seen.length).toBeGreaterThanOrEqual(4);
+      for (const limits of seen) {
+        expect(limits).toEqual({ bottom: 72, maxY: 720 });
+      }
+      for (const page of doc._pageBuffer) {
+        expect(Object.prototype.hasOwnProperty.call(page, 'maxY')).toBe(false);
+      }
+      expect(
+        Object.prototype.hasOwnProperty.call(doc, 'continueOnNewPage'),
+      ).toBe(false);
+    });
+
+    test('the flow starts below what a pageAdded listener draws at the top', async () => {
+      const doc = newDocument();
+      doc.on('pageAdded', () => {
+        doc.text('Cabeçalho', doc.page.margins.left, doc.page.margins.top);
+      });
+      doc.drawRowLabelTexts([{ label: 'Observações', text: longText(120) }]);
+      const pages = await extractText(doc);
+      const [header, firstLine] = pages[1];
+      expect(header.str).toBe('Cabeçalho');
+      expect(firstLine.baseline).toBeGreaterThan(header.baseline + 10);
     });
   });
 });
