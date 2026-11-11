@@ -20,8 +20,9 @@ A JavaScript PDF generation library for Node and the browser.
 
 ### Multi-Page Rectangle System
 - **`startRect(options)`**: Starts a rectangle that can extend across multiple pages
-- **`stopRect()`**: Ends a multi-page rectangle
-- Options: `x`, `y`, `w` (width), `r` (radius), `lineWidth`, `padding`
+- **`stopRect()`**: Ends the most recently started multi-page rectangle. Throws an `Error` when no rectangle is open
+- Options: `x`, `y`, `w` (width), `r` (radius), `lineWidth`
+- The border is stroked with its own line width: the document's line width and colors are left as they were
 
 ### Positioning Utilities
 - **`incX(x)`, `incY(y)`, `incXY(x, y)`**: Increment current position
@@ -72,9 +73,9 @@ doc.addListener('beforePageAdded', function() {
 
 #### Smart Positioning
 ```javascript
-// Use useful properties for calculations
-const centerX = doc.usefulW / 2;
-const centerY = doc.usefulH / 2;
+// Use the useful size methods for calculations
+const centerX = doc.usefulW() / 2;
+const centerY = doc.usefulH() / 2;
 
 // Position elements relatively
 doc.setXY(50, 100);
@@ -114,15 +115,37 @@ doc.drawRowLabelTexts(formData, {
 });
 ```
 
-### Typescript
-If you use typescript, need add fcmpdfkit to typeroots for auto complete and typecheck
+A row that does not fit in the rest of the page moves to the next one. A row with a
+single item taller than the page (a long free-text field, for example) is written
+across pages instead, with the borders continuing on each page. `drawRowLabelTexts`
+gives back the fill color, font and font size that were active before the call, and
+its borders do not change the document's line width.
 
-tsconfig.json
-```json
-"typeRoots": [
-  "./node_modules/@types", "./node_modules/fcmpdfkit/types"
-]
+### Collecting the output
+
+`fcmpdfkit/output` collects a document into a `Uint8Array` (`toBytes`) or a `Blob`
+(`toBlob`). Call the helper before `doc.end()` so no output is missed:
+
+```javascript
+const PDFDocument = require('fcmpdfkit');
+const { toBytes } = require('fcmpdfkit/output');
+
+const doc = new PDFDocument();
+const output = toBytes(doc);
+doc.text('Hello');
+doc.end();
+
+const bytes = await output;
+// In Node, without copying: the array spans its whole ArrayBuffer
+const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 ```
+
+### TypeScript
+The package ships its type definitions. TypeScript finds them from the import, for
+`fcmpdfkit` and its subpaths (`fcmpdfkit/output`, `fcmpdfkit/standard-fonts/*`), with no
+`typeRoots` or `types` entry in `tsconfig.json`. This holds for every `moduleResolution`,
+including `node10`, which reads the subpaths from `typesVersions`. TypeScript 4.4 or later
+is required.
 
 ## Description
 
@@ -142,7 +165,7 @@ You can also try out an interactive in-browser demo of PDFKit [here](http://pdfk
 
 Installation uses the [npm](http://npmjs.org/) package manager. Just type the following command after installing npm.
 
-    npm install pdfkit
+    npm install fcmpdfkit
 
 ## Features
 
@@ -185,7 +208,7 @@ Installation uses the [npm](http://npmjs.org/) package manager. Just type the fo
 ## Example
 
 ```javascript
-const PDFDocument = require('pdfkit');
+const PDFDocument = require('fcmpdfkit');
 const fs = require('fs');
 
 // Create a document
@@ -265,7 +288,7 @@ of prebuilt version usage.
 
 ```javascript
 // require dependencies
-const PDFDocument = require('pdfkit');
+const PDFDocument = require('fcmpdfkit');
 const blobStream = require('blob-stream');
 
 // create a document the same way as above

@@ -51,10 +51,10 @@ for every standard font your application uses before selecting that font. The
 default document font is Helvetica, so it must be registered before constructing
 a document unless the document is created with `{ font: null }`.
 
-### Experimental output helpers
+### Output helpers
 
-PDFKit provides experimental `toBlob` and `toBytes` helpers from
-`pdfkit/output`. These functions may change before they are stabilized. Call the
+PDFKit provides `toBlob` and `toBytes` helpers from `pdfkit/output`
+(`fcmpdfkit/output` in fcmpdfkit, where they are stable since 0.4.0). Call the
 selected helper before ending the document so it receives the complete output.
 
 Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
