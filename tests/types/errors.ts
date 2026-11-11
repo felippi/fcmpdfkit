@@ -62,3 +62,11 @@ PDFDocument.registerFile('/a', 'conteúdo');
 import data = require('fcmpdfkit/js/data');
 
 export { width, data };
+
+// startRect não tem padding desde a 0.4.0: a opção nunca foi implementada
+// @ts-expect-error
+doc.startRect({ padding: 5 });
+
+// Os helpers internos do mixin FCM não fazem parte da API pública
+// @ts-expect-error
+doc._fcmFlowText();

@@ -1,5 +1,4 @@
 // adapted from https://github.com/mozilla/pdf.js/tree/master/examples/node/pdf2png
-import path from 'path';
 import { fileURLToPath } from 'url';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
@@ -8,10 +7,10 @@ async function pdf2png(data) {
   const loadingTask = getDocument({
     data: new Uint8Array(data),
     useSystemFonts: false,
-    standardFontDataUrl: path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      '../../node_modules/pdfjs-dist/standard_fonts/',
-    ),
+    // pdf.js requires a trailing forward slash, also on Windows
+    standardFontDataUrl: fileURLToPath(
+      new URL('../../node_modules/pdfjs-dist/standard_fonts/', import.meta.url),
+    ).replace(/\\/g, '/'),
   });
 
   const pdfDocument = await loadingTask.promise;

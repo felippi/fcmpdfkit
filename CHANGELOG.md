@@ -4,6 +4,24 @@ Changes specific to the fork. The upstream PDFKit changelog follows below.
 
 ### Unreleased
 
+### [v0.4.0]
+
+Adjustments for server-side use (#5):
+
+- [BREAKING CHANGE] `stopRect()` without an open `startRect()` throws an `Error` instead of writing a warning to the console. The FCM extensions no longer write to the console at all
+- [BREAKING CHANGE] Remove the `padding` option of `startRect()`, which was never implemented and only logged `TODO` to the console. It is no longer typed; at runtime it is ignored like any unknown option
+- `toBlob` and `toBytes` from `fcmpdfkit/output` are stable: the `@experimental` marks are gone
+- `drawRowLabelTexts`: a row with a single item taller than the useful page height (a long free-text field, for example) is written across pages instead of running past the bottom margin and off the paper. The label and the first line of text start on the current page when they fit, and the container box, the item box and any open `startRect()` continue on each page. The borders stay inside the page margins on every page and nested as on the first one: the item box at its padding from the text, the container box one `padding` further out and an open `startRect()` one more. The page margins are not changed while the text flows, so `beforePageAdded`/`pageAdded` listeners see the real page limits, and on the continuation pages the text starts below whatever a `pageAdded` listener drew at the top. A fixed text height (`hText`, `text.h`) taller than the page is reserved in full across pages; text longer than it is not cut in this case. An item taller than the page in a row with other items is still not split
+- [BREAKING CHANGE] `drawRowLabelTexts`: a label or text without its own `font`/`size` uses the caller's font and size. Before, it used whatever the previous label or text left active, so with only `label.font` set the texts after the first were drawn in the label font, and the first one was measured in another font than it was drawn in, which cut or overlapped it
+- Fix `drawRowLabelTexts({ divider: true })` drawing every divider on top of each other at the top of the block. A divider is now drawn between consecutive rows on the same page, and none above a row that moves to a new page
+- Fix `drawRowLabelTexts` putting each item of a row taller than the page on a page of its own: the row now moves to a new page once
+- The FCM extensions leave the caller's state as it was: `drawRowLabelTexts` restores the fill color, font and font size, `drawRuler` the font and font size (including the font source that `table()` rolls back to after a cell with its own font), and the borders of `startRect`/`stopRect` and `drawRowLabelTexts` are stroked inside `save()`/`restore()`, so the document's line width no longer changes. This also fixes the line width being set between the path and the `stroke`, which the PDF specification does not allow
+- `npm run generate-types` skips the internal `_`-prefixed helpers of the FCM mixin
+- README: `usefulW()`/`usefulH()` called as methods in the positioning example, installation and examples use `fcmpdfkit`, the TypeScript section drops the `typeRoots` setup (the types resolve from the import) and a new section shows `fcmpdfkit/output`
+- Tests run on Windows: the visual tests pass pdf.js the standard fonts path with a trailing forward slash, and `npm run test:package` matches the loaded standard fonts with either path separator
+
+Typing of the PDFKit 0.18–0.20.2 APIs (#2):
+
 - The named exports `PDFDocument`, `LineWrapper` and `registerFile` (and `registerStdFonts` in the browser builds) are now also static members of the default export in every build, as they already were in the CommonJS build. `PDFDocument.registerFile()` works with `import PDFDocument from 'fcmpdfkit'` and in the standalone build. Upstream leaves them out of the default export in the ES builds
 - Type the APIs added in PDFKit 0.18–0.20.2 (#2):
   - Named exports `PDFDocument`, `LineWrapper` and `registerFile`, typed as static members of the exported constructor. `import PDFDocument, { registerFile } from 'fcmpdfkit'` and `import PDFDocument = require('fcmpdfkit')` both work

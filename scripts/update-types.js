@@ -122,8 +122,12 @@ function generateTypeDefinitions(methods) {
   let definitions = '';
 
   methods.forEach((method) => {
-    // Pula métodos internos (handlers de evento e inicialização)
-    if (method.name.startsWith('on') || method.name === 'initFcm') {
+    // Pula métodos internos (handlers de evento, inicialização e helpers `_`)
+    if (
+      method.name.startsWith('on') ||
+      method.name.startsWith('_') ||
+      method.name === 'initFcm'
+    ) {
       return;
     }
 

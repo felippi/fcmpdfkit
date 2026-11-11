@@ -84,7 +84,6 @@ declare namespace FcmPDFKit.Mixins {
     w?: number;
     r?: number;
     lineWidth?: number;
-    padding?: number;
   }
 
   interface FCMDrawRowLabelTextsOptions {

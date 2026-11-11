@@ -22,9 +22,10 @@ assert.equal(PDFDocument.registerFile, registerFile);
 assert.equal(PDFDocument.PDFDocument, PDFDocument);
 
 const loadedStandardFontModules = () =>
-  Object.keys(require.cache).filter((file) =>
-    file.includes('js/standard-fonts'),
-  );
+  Object.keys(require.cache)
+    // Windows paths use backslashes
+    .map((file) => file.replace(/\\/g, '/'))
+    .filter((file) => file.includes('js/standard-fonts'));
 
 assert.deepEqual(loadedStandardFontModules(), []);
 

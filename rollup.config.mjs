@@ -147,7 +147,7 @@ export default [
     },
     plugins: browserPlugins(),
   },
-  // Experimental helpers for collecting document output.
+  // Helpers for collecting document output.
   {
     input: 'lib/output.js',
     output: [
