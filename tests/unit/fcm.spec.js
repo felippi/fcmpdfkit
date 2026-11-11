@@ -82,11 +82,33 @@ const extractText = async (doc) => {
         .filter((item) => item.str.trim())
         .map((item) => ({
           str: item.str,
+          font: item.fontName,
           baseline: pageHeight - item.transform[5],
         })),
     );
   }
   return pages;
+};
+
+/** Largest y reached by the paths (m, l, c, re) of a content stream. */
+const pathMaxY = (content) => {
+  let max = -Infinity;
+  let operands = [];
+  for (const token of content.split(/\s+/)) {
+    if (/^-?[\d.]+$/.test(token)) {
+      operands.push(Number(token));
+      continue;
+    }
+    if (token === 'm' || token === 'l') {
+      max = Math.max(max, operands[1]);
+    } else if (token === 'c') {
+      max = Math.max(max, operands[1], operands[3], operands[5]);
+    } else if (token === 're') {
+      max = Math.max(max, operands[1], operands[1] + operands[3]);
+    }
+    operands = [];
+  }
+  return max;
 };
 
 const longText = (lines) =>
@@ -336,6 +358,122 @@ describe('FCM extensions', () => {
         expect(pageContent(page)).toMatch(/1\.5 w\n/);
       }
       expect(() => doc.stopRect()).toThrow();
+    });
+  });
+
+  describe('review fixes', () => {
+    test('drawRowLabelTexts gives back the font source the table rolls back to', () => {
+      const doc = newDocument();
+      doc.font('Times-Roman');
+      doc.drawRowLabelTexts([{ label: 'L', text: 'T' }], {
+        label: { font: 'Helvetica-Bold' },
+        text: { font: 'Courier' },
+      });
+      expect(doc._fontSource).toBe('Times-Roman');
+      doc.table({ data: [[{ text: 'célula', font: { src: 'Courier' } }]] });
+      expect(doc._font.name).toBe('Times-Roman');
+    });
+
+    test('drawRuler gives back the font source the table rolls back to', () => {
+      const doc = newDocument();
+      doc.font('Times-Roman').fontSize(11).drawRuler();
+      expect(doc._fontSource).toBe('Times-Roman');
+      expect(doc._fontSize).toBe(11);
+      doc.table({ data: [[{ text: 'célula', font: { src: 'Courier' } }]] });
+      expect(doc._font.name).toBe('Times-Roman');
+    });
+
+    test('text without its own font is measured and drawn in the caller font', async () => {
+      const doc = newDocument();
+      doc.font('Times-Roman').fontSize(10);
+      doc.text('Antes');
+      const paragraph = 'palavra '.repeat(60).trim();
+      doc.drawRowLabelTexts(
+        [
+          { label: 'Primeiro', text: paragraph, w: 450 },
+          { label: 'Segundo', text: paragraph, w: 450 },
+        ],
+        { label: { font: 'Helvetica-Bold', size: 14 } },
+      );
+      const [page] = await extractText(doc);
+      const fontOf = (str) => page.find((item) => item.str === str).font;
+      const texts = page.filter((item) => item.str.startsWith('palavra'));
+      expect(texts.length).toBeGreaterThan(2);
+      for (const item of texts) {
+        expect(item.font).toBe(fontOf('Antes'));
+      }
+      expect(fontOf('Primeiro')).not.toBe(fontOf('Antes'));
+      // The first row was measured with the font it is drawn in: its last
+      // line sits above the label of the second row
+      const firstRowEnd = Math.max(
+        ...texts
+          .filter(
+            (item) =>
+              item.baseline < page.find((i) => i.str === 'Segundo').baseline,
+          )
+          .map((item) => item.baseline),
+      );
+      expect(firstRowEnd).toBeLessThan(
+        page.find((item) => item.str === 'Segundo').baseline - 14,
+      );
+    });
+
+    test('borders of a flowing item stay inside the bottom margin', () => {
+      // Different lengths end the text at different heights on the last page.
+      // The text wrapper always leaves a line of room above the margin, so
+      // the spacing below the text has to be taller than a line to cross it.
+      for (let lines = 40; lines <= 120; lines += 1) {
+        const doc = newDocument();
+        doc.startRect({ lineWidth: 1 });
+        doc.drawRowLabelTexts(
+          [{ label: 'Observações', text: longText(lines) }],
+          {
+            padding: 20,
+            box: { radius: 4 },
+            itemBox: { active: true, padding: 8 },
+          },
+        );
+        doc.stopRect();
+        for (const page of doc._pageBuffer) {
+          expect(pathMaxY(pageContent(page))).toBeLessThanOrEqual(
+            page.maxY() + 0.001,
+          );
+          expect(page.margins.bottom).toBe(72);
+          expect(page.margins.top).toBe(72);
+        }
+      }
+    });
+
+    test('a fixed text height is reserved across pages', () => {
+      const doc = newDocument();
+      const top = doc.page.margins.top;
+      doc.drawRowLabelTexts(
+        [{ label: 'Anotações', text: 'curto', hText: 900 }],
+        {
+          box: {},
+        },
+      );
+      expect(doc.bufferedPageRange().count).toBe(2);
+      // Of the 900pt, at most the useful height fits on the first page
+      expect(doc.y).toBeGreaterThan(top + 900 - doc.usefulH());
+      const [, second] = doc._pageBuffer;
+      // The container box continues and closes on the second page
+      expect(pageContent(second)).toMatch(/0\.3 w\n/);
+    });
+
+    test('the item box keeps its padding on continuation pages', async () => {
+      const firstBaseline = async (padding) => {
+        const doc = newDocument();
+        doc.drawRowLabelTexts([{ label: 'Observações', text: longText(120) }], {
+          itemBox: { active: true, padding },
+        });
+        const pages = await extractText(doc);
+        return pages[1][0].baseline;
+      };
+      expect((await firstBaseline(8)) - (await firstBaseline(0))).toBeCloseTo(
+        8,
+        3,
+      );
     });
   });
 });

@@ -117,7 +117,8 @@ doc.drawRowLabelTexts(formData, {
 
 A row that does not fit in the rest of the page moves to the next one. A row with a
 single item taller than the page (a long free-text field, for example) is written
-across pages instead, with the borders continuing on each page. `drawRowLabelTexts`
+across pages instead, with the borders continuing on each page inside the margins.
+Labels and texts without their own `font`/`size` use the caller's font. `drawRowLabelTexts`
 gives back the fill color, font and font size that were active before the call, and
 its borders do not change the document's line width.
 
